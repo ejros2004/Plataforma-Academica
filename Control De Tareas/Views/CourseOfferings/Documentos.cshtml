@@ -1,0 +1,321 @@
+﻿@model List<System.IO.FileInfo>
+
+@{
+    ViewData["Title"] = "Documentos del Curso";
+    var courseOfferingId = ViewBag.CourseOfferingId as Guid?;
+    var courseName = ViewBag.CourseName as string;
+    var userRole = ViewBag.UserRole as string;
+    var isProfesor = userRole == "Profesor";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-action="MisCursos">Mis Cursos</a>
+                    </li>
+                    <li class="breadcrumb-item active">@courseName</li>
+                    <li class="breadcrumb-item active">Documentos</li>
+                </ol>
+            </nav>
+
+            <h2 class="mb-3">
+                <i class="bi bi-folder2-open text-primary"></i>
+                Documentos del Curso
+            </h2>
+            <p class="text-muted">@courseName</p>
+        </div>
+    </div>
+
+    <!-- Mensajes -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Columna principal -->
+        <div class="col-lg-9">
+            <!-- Card de Upload (solo profesores) -->
+            @if (isProfesor)
+            {
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h5 class="mb-0">
+                            <i class="bi bi-cloud-upload"></i>
+                            Subir Nuevo Documento
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="UploadDocument" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="courseOfferingId" value="@courseOfferingId" />
+
+                            <div class="mb-3">
+                                <label for="file" class="form-label">
+                                    <i class="bi bi-paperclip"></i>
+                                    Seleccionar archivo *
+                                </label>
+                                <input type="file"
+                                       class="form-control"
+                                       id="file"
+                                       name="file"
+                                       required
+                                       accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.zip">
+                                <small class="text-muted">
+                                    Formatos permitidos: PDF, Word, PowerPoint, Excel, Imágenes, TXT, ZIP. Máximo 10MB
+                                </small>
+                            </div>
+
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-upload"></i>
+                                    Subir Documento
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            }
+
+            <!-- Lista de Documentos -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-earmark-text"></i>
+                        Archivos Disponibles
+                        <span class="badge bg-secondary ms-2">@Model.Count</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 5%"><i class="bi bi-file-earmark"></i></th>
+                                        <th style="width: 45%">Nombre</th>
+                                        <th style="width: 15%">Tamaño</th>
+                                        <th style="width: 20%">Fecha</th>
+                                        <th style="width: 15%" class="text-end">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var doc in Model)
+                                    {
+                                        var extension = doc.Extension.ToLower();
+                                        var iconClass = GetFileIcon(extension);
+                                        var sizeInMB = (doc.Length / 1024.0 / 1024.0).ToString("F2");
+
+                                        // Extraer nombre original (sin timestamp)
+                                        var displayName = doc.Name;
+                                        var parts = doc.Name.Split('_', 2);
+                                        if (parts.Length > 1)
+                                        {
+                                            displayName = parts[1];
+                                        }
+
+                                        <tr>
+                                            <td>
+                                                <i class="@iconClass fs-4"></i>
+                                            </td>
+                                            <td>
+                                                <strong>@displayName</strong>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light text-dark">@sizeInMB MB</span>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">
+                                                    @doc.CreationTime.ToString("dd/MM/yyyy HH:mm")
+                                                </small>
+                                            </td>
+                                            <td class="text-end">
+                                                <!-- Botón Descargar -->
+                                                <a asp-action="DownloadDocument"
+                                                   asp-route-courseOfferingId="@courseOfferingId"
+                                                   asp-route-fileName="@doc.Name"
+                                                   class="btn btn-sm btn-outline-primary"
+                                                   title="Descargar">
+                                                    <i class="bi bi-download"></i>
+                                                </a>
+
+                                                <!-- Botón Eliminar (solo profesores) -->
+                                                @if (isProfesor)
+                                                {
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-danger"
+                                                            onclick="confirmDelete('@doc.Name', '@displayName')"
+                                                            title="Eliminar">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox display-1 text-muted"></i>
+                            <h5 class="text-muted mt-3">No hay documentos disponibles</h5>
+                            @if (isProfesor)
+                            {
+                                <p class="text-muted">Sube el primer documento usando el formulario arriba</p>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna lateral - Ayuda -->
+        <div class="col-lg-3">
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-header bg-light py-3">
+                    <h6 class="mb-0">
+                        <i class="bi bi-info-circle text-primary"></i>
+                        Información
+                    </h6>
+                </div>
+                <div class="card-body">
+                    @if (isProfesor)
+                    {
+                        <p class="mb-2"><strong>Como Profesor puedes:</strong></p>
+                        <ul class="mb-0 small">
+                            <li>Subir documentos de clase</li>
+                            <li>Eliminar archivos</li>
+                            <li>Descargar documentos</li>
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="mb-2"><strong>Como Estudiante puedes:</strong></p>
+                        <ul class="mb-0 small">
+                            <li>Ver documentos del curso</li>
+                            <li>Descargar archivos</li>
+                        </ul>
+                    }
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light py-3">
+                    <h6 class="mb-0">
+                        <i class="bi bi-file-earmark-check text-success"></i>
+                        Formatos Permitidos
+                    </h6>
+                </div>
+                <div class="card-body small">
+                    <div class="mb-2">
+                        <i class="bi bi-file-pdf text-danger me-2"></i>
+                        <span>PDF</span>
+                    </div>
+                    <div class="mb-2">
+                        <i class="bi bi-file-word text-primary me-2"></i>
+                        <span>Word (.doc, .docx)</span>
+                    </div>
+                    <div class="mb-2">
+                        <i class="bi bi-file-ppt text-warning me-2"></i>
+                        <span>PowerPoint (.ppt, .pptx)</span>
+                    </div>
+                    <div class="mb-2">
+                        <i class="bi bi-file-excel text-success me-2"></i>
+                        <span>Excel (.xls, .xlsx)</span>
+                    </div>
+                    <div class="mb-2">
+                        <i class="bi bi-file-image text-info me-2"></i>
+                        <span>Imágenes (.jpg, .png)</span>
+                    </div>
+                    <div class="mb-2">
+                        <i class="bi bi-file-zip text-secondary me-2"></i>
+                        <span>Comprimidos (.zip)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Form oculto para eliminar -->
+<form id="deleteForm" method="post" asp-action="DeleteDocument" style="display:none;">
+    <input type="hidden" name="courseOfferingId" value="@courseOfferingId" />
+    <input type="hidden" id="deleteFileName" name="fileName" />
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+    <script>
+        function confirmDelete(fileName, displayName) {
+            if (confirm('¿Está seguro de eliminar el documento "' + displayName + '"?')) {
+                document.getElementById('deleteFileName').value = fileName;
+                document.getElementById('deleteForm').submit();
+            }
+        }
+    </script>
+}
+
+<style>
+    .btn-primary {
+        background-color: #3b7dbd;
+        border-color: #3b7dbd;
+    }
+
+        .btn-primary:hover {
+            background-color: #2e6399;
+            border-color: #2e6399;
+        }
+
+    .text-primary {
+        color: #3b7dbd !important;
+    }
+
+    .bg-primary {
+        background-color: #3b7dbd !important;
+    }
+
+    .breadcrumb-item a {
+        color: #3b7dbd;
+        text-decoration: none;
+    }
+
+        .breadcrumb-item a:hover {
+            text-decoration: underline;
+        }
+</style>
+
+@functions {
+    string GetFileIcon(string extension)
+    {
+        return extension switch
+        {
+            ".pdf" => "bi bi-file-pdf text-danger",
+            ".doc" or ".docx" => "bi bi-file-word text-primary",
+            ".xls" or ".xlsx" => "bi bi-file-excel text-success",
+            ".ppt" or ".pptx" => "bi bi-file-ppt text-warning",
+            ".jpg" or ".jpeg" or ".png" or ".gif" => "bi bi-file-image text-info",
+            ".zip" or ".rar" => "bi bi-file-zip text-secondary",
+            ".txt" => "bi bi-file-text text-muted",
+            _ => "bi bi-file-earmark"
+        };
+    }
+}

@@ -1,0 +1,148 @@
+@model Control_De_Tareas.Models.PeriodVm
+@{
+    ViewData["Title"] = "Eliminar Período";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h3 text-danger">
+                    <i class="fas fa-trash-alt me-2"></i>Eliminar Período
+                </h2>
+                <a href="@Url.Action("Index", "Periods")" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </a>
+            </div>
+
+            <!-- Advertencia -->
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Icono de advertencia -->
+                    <div class="text-center mb-4">
+                        <i class="fas fa-exclamation-circle text-danger fa-4x"></i>
+                        <h4 class="text-danger mt-3">¿Está seguro de eliminar este período?</h4>
+                    </div>
+
+                    <!-- Información del período -->
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-info-circle me-2"></i>Información del período a eliminar:
+                        </h6>
+                        <hr>
+                        <dl class="row mb-0">
+                            <dt class="col-sm-3">Nombre:</dt>
+                            <dd class="col-sm-9">@Model.Name</dd>
+
+                            <dt class="col-sm-3">Fechas:</dt>
+                            <dd class="col-sm-9">
+                                @Model.StartDate.ToString("dd/MM/yyyy") - @Model.EndDate.ToString("dd/MM/yyyy")
+                            </dd>
+
+                            <dt class="col-sm-3">Duración:</dt>
+                            <dd class="col-sm-9">
+                                @{
+                                    var duracion = (Model.EndDate - Model.StartDate).Days;
+                                    <span>@duracion días</span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-3">Estado:</dt>
+                            <dd class="col-sm-9">
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge bg-success">Activo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-3">Ofertas:</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge bg-info">@Model.CourseOfferingsCount ofertas</span>
+                            </dd>
+                        </dl>
+                    </div>
+
+                    <!-- Restricciones -->
+                    @if (Model.CourseOfferingsCount > 0)
+                    {
+                        <div class="alert alert-danger">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-ban me-2"></i>No se puede eliminar
+                            </h6>
+                            <p class="mb-0">
+                                Este período tiene @Model.CourseOfferingsCount ofertas de cursos asociadas.
+                                Primero debes eliminar o reasignar todas las ofertas antes de poder eliminar el período.
+                            </p>
+                            <div class="mt-2">
+                                <a href="@Url.Action("ListadoOfertas", "CourseOfferings", new { periodId = Model.Id })"
+                                   class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-external-link-alt me-1"></i>Ir a Gestionar Ofertas
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-check-circle me-2"></i>Se puede eliminar
+                            </h6>
+                            <p class="mb-0">
+                                Este período no tiene ofertas asociadas, por lo que se puede eliminar sin problemas.
+                            </p>
+                        </div>
+                    }
+
+                    <!-- Consecuencias -->
+                    <div class="alert alert-secondary">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-exclamation-circle me-2"></i>Consecuencias de la eliminación
+                        </h6>
+                        <ul class="mb-0">
+                            <li>El período desaparecerá de todas las listas</li>
+                            <li>No podrá ser utilizado para crear nuevas ofertas de cursos</li>
+                            <li>La eliminación es lógica (soft delete) - puede ser reactivado por un administrador</li>
+                            <li>Si tiene ofertas asociadas, no se podrá eliminar</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between">
+                        <a href="@Url.Action("Index", "Periods")" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+
+                        @if (Model.CourseOfferingsCount == 0)
+                        {
+                            <form method="post" asp-action="DeleteConfirmed">
+                                <input type="hidden" name="id" value="@Model.Id" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger"
+                                        onclick="return confirm('¿Está completamente seguro? Esta acción marcará el período como eliminado.')">
+                                    <i class="fas fa-trash-alt me-2"></i>Sí, Eliminar Período
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <button class="btn btn-danger" disabled title="No se puede eliminar porque tiene ofertas asociadas">
+                                <i class="fas fa-trash-alt me-2"></i>No se puede eliminar
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,203 @@
+@model Control_De_Tareas.Models.PeriodVm
+@{
+    ViewData["Title"] = "Editar Período";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h3 text-primary">
+                    <i class="fas fa-edit me-2"></i>Editar Período
+                </h2>
+                <a href="@Url.Action("Index", "Periods")" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </a>
+            </div>
+
+            <!-- Mensajes de error de validación -->
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Errores de validación
+                    </h6>
+                    <ul class="mb-0">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <li>@error.ErrorMessage</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <!-- Formulario -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calendar-edit me-2"></i>Información del Período
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="Edit">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="Id" value="@Model.Id" />
+
+                        <div class="mb-3">
+                            <label for="Name" class="form-label">
+                                <i class="fas fa-font me-2"></i>Nombre del Período *
+                            </label>
+                            <input type="text" class="form-control" id="Name" name="Name"
+                                   value="@Model.Name" placeholder="Ej: 2024-I, 2024-II, Verano 2024" required
+                                   maxlength="50">
+                            <span class="text-danger field-validation-valid" 
+                                  data-valmsg-for="Name" data-valmsg-replace="true"></span>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="StartDate" class="form-label">
+                                    <i class="fas fa-calendar-day me-2"></i>Fecha de Inicio *
+                                </label>
+                                <input type="date" class="form-control" id="StartDate" name="StartDate" 
+                                       value="@Model.StartDate.ToString("yyyy-MM-dd")" required>
+                                <span class="text-danger field-validation-valid" 
+                                      data-valmsg-for="StartDate" data-valmsg-replace="true"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="EndDate" class="form-label">
+                                    <i class="fas fa-calendar-day me-2"></i>Fecha de Fin *
+                                </label>
+                                <input type="date" class="form-control" id="EndDate" name="EndDate" 
+                                       value="@Model.EndDate.ToString("yyyy-MM-dd")" required>
+                                <span class="text-danger field-validation-valid" 
+                                      data-valmsg-for="EndDate" data-valmsg-replace="true"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="IsActive" name="IsActive" 
+                                       value="true" @(Model.IsActive ? "checked" : "")>
+                                <input type="hidden" name="IsActive" value="false" />
+                                <label class="form-check-label" for="IsActive">
+                                    <i class="fas fa-toggle-on me-2"></i>
+                                    @if (Model.IsActive)
+                                    {
+                                        <span>Período activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Activar este período (se desactivarán otros períodos activos)</span>
+                                    }
+                                </label>
+                            </div>
+                            <small class="text-muted">
+                                @if (Model.IsActive)
+                                {
+                                    <span class="text-success">Este período está actualmente activo</span>
+                                }
+                                else
+                                {
+                                    <span class="text-warning">Al marcar como activo, se desactivará automáticamente cualquier período activo actual</span>
+                                }
+                            </small>
+                        </div>
+
+                        @if (Model.CourseOfferingsCount > 0)
+                        {
+                            <div class="alert alert-warning">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Restricción de edición
+                                </h6>
+                                <p class="mb-0">
+                                    Este período tiene @Model.CourseOfferingsCount ofertas de cursos asociadas. 
+                                    <strong>No se pueden cambiar las fechas</strong>, pero sí el nombre y estado.
+                                </p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-info-circle me-2"></i>Información de edición
+                                </h6>
+                                <p class="mb-0">
+                                    Este período no tiene ofertas asociadas, por lo que puedes modificar todas sus propiedades.
+                                </p>
+                            </div>
+                        }
+
+                        <div class="d-flex justify-content-between">
+                            <a href="@Url.Action("Index", "Periods")" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const startDateInput = document.getElementById('StartDate');
+            const endDateInput = document.getElementById('EndDate');
+
+            @if (Model.CourseOfferingsCount > 0)
+            {
+                    <text>
+                    if (startDateInput) startDateInput.disabled = true;
+                    if (endDateInput) endDateInput.disabled = true;
+                    </text>
+            }
+
+            @if (Model.CourseOfferingsCount == 0)
+            {
+                    <text>
+                    const form = document.querySelector('form');
+                    if (form) {
+                        form.addEventListener('submit', function(e) {
+                            if (!startDateInput || !endDateInput) return;
+
+                            const startDate = new Date(startDateInput.value);
+                            const endDate = new Date(endDateInput.value);
+
+                            // Usar &lt; para escapar el <
+                            if (endDate &lt;= startDate) {
+                                e.preventDefault();
+                                alert('La fecha de fin debe ser posterior a la fecha de inicio');
+                                endDateInput.focus();
+                                return;
+                            }
+
+                            const diffTime = Math.abs(endDate - startDate);
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                            if (diffDays &lt; 30) {
+                                e.preventDefault();
+                                alert('La duración mínima del período es de 30 días');
+                                endDateInput.focus();
+                                return;
+                            }
+
+                            if (diffDays > 365) {
+                                e.preventDefault();
+                                alert('La duración máxima del período es de 365 días');
+                                endDateInput.focus();
+                                return;
+                            }
+                        });
+                    }
+                    </text>
+            }
+        });
+    </script>
+}

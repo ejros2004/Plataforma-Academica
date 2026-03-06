@@ -1,0 +1,352 @@
+@model List<Control_De_Tareas.Models.CourseOfferingVm>
+@{
+    ViewData["Title"] = "Mis Cursos";
+    var userRole = ViewBag.UserRole as string ?? "Estudiante";
+    var isAdmin = userRole == "Administrador";
+    var isProfesor = userRole == "Profesor";
+    var isEstudiante = userRole == "Estudiante";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 text-primary">
+            <i class="bi bi-journal-bookmark"></i>
+            @(isProfesor ? "Cursos que Imparto" :
+                        isEstudiante ? "Mis Cursos Matriculados" :
+                        "Mis Cursos")
+        </h1>
+        @if (isAdmin)
+        {
+            <a href="@Url.Action("ListadoOfertas", "CourseOfferings")" class="btn btn-outline-primary">
+                <i class="bi bi-gear"></i> Gestionar Todas las Ofertas
+            </a>
+        }
+    </div>
+
+    <!-- Mensajes -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (!isEstudiante)
+    {
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Estado del Curso</label>
+                        <select id="statusFilter" class="form-select">
+                            <option value="">Todos los estados</option>
+                            <option value="en curso">En Curso</option>
+                            <option value="próximo">Próximos</option>
+                            <option value="finalizado">Finalizados</option>
+                            <option value="inactivo">Inactivos</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Buscar Curso</label>
+                        <input type="text" id="searchFilter" class="form-control" placeholder="Buscar por nombre...">
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button id="clearFilters" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-clockwise"></i> Limpiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="row" id="cursosGrid">
+        @foreach (var curso in Model)
+        {
+            <div class="col-xl-4 col-lg-6 col-md-6 mb-4 curso-card"
+                 data-status="@curso.Status.ToLower()"
+                 data-name="@curso.CourseName.ToLower()"
+                 data-active="@curso.IsActive.ToString().ToLower()">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-transparent border-bottom-0 pb-0">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <span class="badge @GetStatusBadgeClass(curso.Status)">@curso.Status</span>
+                            @if (curso.IsActive)
+                            {
+                                <span class="badge bg-success">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactivo</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">@curso.CourseName</h5>
+                        <p class="card-text text-muted small mb-2">
+                            <strong>Código:</strong> @curso.CourseCode
+                        </p>
+                        <p class="card-text text-muted small mb-2">
+                            <strong>Sección:</strong> @curso.Section
+                        </p>
+                        <p class="card-text text-muted small mb-2">
+                            <strong>Período:</strong> @curso.PeriodName
+                        </p>
+                        @if (isProfesor || isAdmin)
+                        {
+                            <p class="card-text text-muted small mb-2">
+                                <strong>Estudiantes:</strong> @curso.EnrolledStudentsCount
+                            </p>
+                        }
+                        <p class="card-text text-muted small">
+                            <strong>Fecha:</strong>
+                            @(curso.PeriodStartDate?.ToString("dd/MM/yyyy") ?? "N/A") -
+                            @(curso.PeriodEndDate?.ToString("dd/MM/yyyy") ?? "N/A")
+                        </p>
+
+                        @if (curso.PeriodStartDate.HasValue && curso.PeriodEndDate.HasValue)
+                        {
+                            var progress = CalculateProgress(curso.PeriodStartDate.Value, curso.PeriodEndDate.Value);
+                            <div class="mt-3">
+                                <div class="d-flex justify-content-between small text-muted mb-1">
+                                    <span>Progreso del período</span>
+                                    <span>@progress%</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar @GetProgressBarClass(progress)"
+                                         role="progressbar"
+                                         style="width: @progress%"
+                                         aria-valuenow="@progress"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="card-footer bg-transparent border-top-0 pt-0">
+                        <div class="d-grid gap-2">
+                            <!-- Para Estudiantes -->
+                            @if (isEstudiante)
+                            {
+                                if (curso.Status == "Próximo" && curso.IsActive)
+                                {
+                                    <button class="btn btn-success btn-sm"
+                                            onclick="matricularCurso('@curso.Id')">
+                                        <i class="bi bi-plus-circle"></i> Matricular
+                                    </button>
+                                }
+                                else if (curso.Status == "En Curso" || curso.Status == "Próximo")
+                                {
+                                    <a href="@Url.Action("Details", "CourseOfferings", new { id = curso.Id })"
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-eye"></i> Ver Curso
+                                    </a>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-outline-secondary btn-sm" disabled>
+                                        <i class="bi bi-clock"></i> @curso.Status
+                                    </button>
+                                }
+                            }
+
+                            <!-- Para Profesores y Administradores -->
+                            @if (isProfesor || isAdmin)
+                            {
+                                <a href="@Url.Action("Details", "CourseOfferings", new { id = curso.Id })"
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-eye"></i> Ver Detalles
+                                </a>
+
+                                <a href="@Url.Action("Documentos", "CourseOfferings", new { id = curso.Id })"
+                                   class="btn btn-outline-info btn-sm">
+                                    <i class="bi bi-folder"></i> Documentos
+                                </a>
+
+                                @if ((isProfesor && curso.Status == "En Curso") || isAdmin)
+                                {
+                                    <a href="@Url.Action("Index", "CourseOfferings", new { id = curso.Id })"
+                                       class="btn btn-outline-warning btn-sm">
+                                        <i class="bi bi-people"></i> Inscripciones
+                                    </a>
+                                }
+
+                                <!-- Botón Activar/Desactivar -->
+                                @if ((isProfesor && curso.IsActive) || isAdmin)
+                                {
+                                    <form method="post"
+                                          action="@Url.Action("ToggleStatus", "CourseOfferings")"
+                                          class="d-grid"
+                                          onsubmit="return confirm('¿Está seguro de @(curso.IsActive ? "desactivar" : "activar") este curso?')">
+                                        <input type="hidden" name="id" value="@curso.Id" />
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit"
+                                                class="btn @(curso.IsActive ? "btn-warning" : "btn-success") btn-sm">
+                                            <i class="bi bi-power"></i>
+                                            @(curso.IsActive ? "Desactivar" : "Activar")
+                                        </button>
+                                    </form>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-journal-x display-1 text-muted"></i>
+            <h3 class="text-muted mt-3">
+                @(isEstudiante ? "No estás matriculado en ningún curso" :
+                            isProfesor ? "No tienes cursos asignados" :
+                            "No hay cursos disponibles")
+                                                    </h3>
+                                                    <p class="text-muted">
+                @(isEstudiante ? "Consulta con tu administrador para matricularte en cursos." :
+                            isProfesor ? "Contacta al administrador para que te asigne cursos." :
+                            "Crea la primera oferta de curso.")
+        </p>
+        @if (isAdmin)
+            {
+                <a href="@Url.Action("Create", "CourseOfferings")" class="btn btn-primary mt-3">
+                    <i class="bi bi-plus-circle"></i> Crear Nueva Oferta
+                </a>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Filtros JavaScript
+        if (document.getElementById('statusFilter')) {
+            document.getElementById('statusFilter').addEventListener('change', filterCursos);
+            document.getElementById('searchFilter').addEventListener('input', filterCursos);
+            document.getElementById('clearFilters').addEventListener('click', clearFilters);
+        }
+
+        function filterCursos() {
+            const statusFilter = document.getElementById('statusFilter')?.value.toLowerCase() || '';
+            const searchFilter = document.getElementById('searchFilter')?.value.toLowerCase() || '';
+
+            document.querySelectorAll('.curso-card').forEach(card => {
+                const status = card.getAttribute('data-status');
+                const name = card.getAttribute('data-name');
+                const isActive = card.getAttribute('data-active') === 'true';
+
+                let statusMatch = true;
+                if (statusFilter) {
+                    if (statusFilter === 'inactivo') {
+                        statusMatch = !isActive;
+                    } else {
+                        statusMatch = status === statusFilter;
+                    }
+                }
+
+                const searchMatch = !searchFilter || name.includes(searchFilter);
+
+                card.style.display = (statusMatch && searchMatch) ? 'block' : 'none';
+            });
+        }
+
+        function clearFilters() {
+            if (document.getElementById('statusFilter')) {
+                document.getElementById('statusFilter').value = '';
+            }
+            if (document.getElementById('searchFilter')) {
+                document.getElementById('searchFilter').value = '';
+            }
+            filterCursos();
+        }
+
+        function matricularCurso(cursoId) {
+            if (confirm('¿Estás seguro de que deseas matricularte en este curso?')) {
+                const formData = new FormData();
+                formData.append('courseOfferingId', cursoId);
+
+                // Obtener el token anti-falsificación
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                fetch('@Url.Action("MatricularEstudiante", "CourseOfferings")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        courseOfferingId: cursoId,
+                        __RequestVerificationToken: token
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la respuesta del servidor');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al realizar la matrícula. Intente nuevamente.');
+                });
+            }
+        }
+    </script>
+}
+
+@functions {
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "En Curso" => "bg-success",
+            "Próximo" => "bg-warning",
+            "Finalizado" => "bg-secondary",
+            "Inactivo" => "bg-danger",
+            _ => "bg-light text-dark"
+        };
+    }
+
+    private string GetProgressBarClass(int progress)
+    {
+        if (progress < 25) return "bg-success";
+        if (progress < 50) return "bg-info";
+        if (progress < 75) return "bg-warning";
+        return "bg-danger";
+    }
+
+    private int CalculateProgress(DateTime startDate, DateTime endDate)
+    {
+        var totalDays = (endDate - startDate).TotalDays;
+        if (totalDays <= 0) return 0;
+
+        var daysPassed = (DateTime.Now - startDate).TotalDays;
+        if (daysPassed <= 0) return 0;
+        if (daysPassed >= totalDays) return 100;
+
+        return (int)((daysPassed / totalDays) * 100);
+    }
+}

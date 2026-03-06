@@ -1,0 +1,136 @@
+﻿@model Control_De_Tareas.Models.FileUploadVm
+
+@{
+    ViewData["Title"] = "Subir Archivo";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4>📤 Subir Archivo</h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <strong>✅ Éxito!</strong> @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form asp-action="Upload" method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="CourseOfferingId" class="form-label">Course Offering ID</label>
+                            <input asp-for="CourseOfferingId" class="form-control" type="number" min="1" placeholder="Ejemplo: 1" />
+                            <span asp-validation-for="CourseOfferingId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="TaskId" class="form-label">Task ID</label>
+                            <input asp-for="TaskId" class="form-control" type="number" min="1" placeholder="Ejemplo: 5" />
+                            <span asp-validation-for="TaskId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="File" class="form-label">Seleccionar Archivo</label>
+                            <input asp-for="File" class="form-control" type="file" />
+                            <span asp-validation-for="File" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                Extensiones permitidas: .pdf, .doc, .docx, .jpg, .jpeg, .png, .txt (máx. 10MB)
+                            </small>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                Subir Archivo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    
+    .card-header.bg-primary {
+        background-color: #3b7dbd !important;
+    }
+
+    .card-header.bg-info {
+        background-color: #17a2b8 !important;
+    }
+
+    .btn-primary {
+        background-color: #3b7dbd;
+        border-color: #3b7dbd;
+    }
+
+    .btn-primary:hover {
+        background-color: #2e6399;
+        border-color: #2e6399;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .text-primary {
+        color: #3b7dbd !important;
+    }
+
+    .bg-primary.bg-opacity-10 {
+        background-color: rgba(59, 125, 189, 0.1) !important;
+    }
+
+    .alert-info {
+        background-color: #e3f2fd;
+        border-color: #90caf9;
+        color: #1976d2;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+        color: #155724;
+    }
+
+    .card {
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #3b7dbd;
+        box-shadow: 0 0 0 0.2rem rgba(59, 125, 189, 0.25);
+    }
+
+    .badge.bg-secondary {
+        background-color: #6c757d !important;
+    }
+
+    h2 {
+        color: #2c3e50;
+    }
+
+    .text-muted {
+        color: #7f8c8d !important;
+    }
+
+    /* Borde izquierdo azul en cards */
+    .card-header {
+        border-bottom: 2px solid #3b7dbd;
+    }
+</style>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,244 @@
+﻿html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    margin-bottom: 60px;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    padding: 48px 0 0;
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+    width: 220px;
+    background-color: white;
+}
+
+.sidebar-sticky {
+    position: relative;
+    top: 0;
+    height: calc(100vh - 48px);
+    padding-top: .5rem;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.sidebar .nav-link {
+    color: #000000; /* Letras en negro */
+    padding: 0.75rem 1rem;
+    border-left: 3px solid transparent;
+    border-radius: 8px; /* Bordes más redondeados */
+    margin: 2px 8px; /* Espacio entre los items */
+    transition: all 0.3s ease; /* Transición suave */
+}
+
+    .sidebar .nav-link:hover {
+        color: #ffffff; /* Letras blancas al hacer hover */
+        background-color: rgba(11, 93, 157, 0.8);
+        border-radius: 8px; /* Bordes redondeados en hover también */
+    }
+
+    .sidebar .nav-link.active {
+        color: #000000; /* Letras negras cuando está activo */
+        background-color: rgba(11, 93, 157, 0.1); /* Fondo azul muy suave */
+        border-left-color: rgba(11, 93, 157, 0.8); /* Borde izquierdo azul */
+        border-radius: 8px; /* Bordes redondeados cuando está activo */
+        font-weight: 500; /* Texto un poco más grueso para el activo */
+    }
+
+.sidebar-heading {
+    font-size: .75rem;
+    text-transform: uppercase;
+    color: #6c757d;
+    padding: 0.5rem 1rem;
+    margin-top: 1rem;
+}
+
+.navbar-blue {
+    background-color: rgba(11, 93, 157, 0.8);
+}
+
+.stat-card {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+    margin-bottom: 1.5rem;
+}
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.stat-description {
+    font-size: 0.75rem;
+    color: #28a745;
+    margin-top: 0.25rem;
+}
+
+main {
+    margin-left: 220px;
+    padding-top: 20px;
+}
+
+@media (max-width: 767.98px) {
+    .sidebar {
+        width: 100%;
+        position: relative;
+    }
+
+    main {
+        margin-left: 0;
+    }
+}
+<style >
+.sidebar {
+    width: 260px;
+    transition: width 0.3s ease;
+    position: fixed;
+    height: calc(100vh - 56px);
+    background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    z-index: 1000;
+    top: 56px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.sidebar.collapsed {
+    width: 70px;
+}
+
+    .sidebar.collapsed .menu-text {
+        display: none;
+    }
+
+    .sidebar.collapsed .sidebar-header .menu-text {
+        display: none;
+    }
+
+.sidebar-header {
+    background-color: white;
+}
+
+
+
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    margin-top: 8px;
+}
+
+.dropdown-item {
+    padding: 0.6rem 1rem;
+    transition: all 0.2s ease;
+}
+
+    .dropdown-item:hover {
+        background-color: rgba(13, 110, 253, 0.08);
+        transform: translateX(5px);
+    }
+
+    .dropdown-item.active {
+        background-color: #0d6efd;
+        color: white;
+    }
+
+/* Scrollbar personalizado */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 10px;
+}
+
+    .sidebar::-webkit-scrollbar-thumb:hover {
+        background: #a0aec0;
+    }
+
+.Log {
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+    position :absolute;
+    top :50%;
+    left:70%;
+    flex:auto;
+    
+}
+
+    .Log a {
+        text-decoration: none;
+        font-weight: 600;
+
+    }
+
+/* ======== Sidebar Link ======== */
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.75rem 1rem;
+    border-left: 3px solid transparent;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #374151;
+    transition: all 0.25s ease;
+}
+
+    /* Hover → azul #1E3A8A */
+    .sidebar-link:hover {
+        background-color: blue; /* Azul suave */
+        border-left-color: #1E3A8A;
+        color: #1E3A8A;
+    }
+
+    /* ACTIVE → el azul de Bootstrap (#0d6efd) */
+    .sidebar-link.active {
+        background-color: blue;
+        border-left-color: #0d6efd;
+        color: #0d6efd;
+        font-weight: 600;
+    }
+
+
+
+
+</style >

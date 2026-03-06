@@ -1,0 +1,148 @@
+﻿@model Control_De_Tareas.Models.AdminDashboardVm
+@{
+    ViewData["Title"] = "Dashboard - Administrador";
+}
+
+<div class="container-fluid p-4">
+
+    <!-- ENCABEZADO -->
+    <div class="mb-4">
+        <h2 class="fw-bold">Panel de Administración</h2>
+        <p class="text-muted">Vista general del sistema</p>
+    </div>
+
+    <!-- ================= ESTADÍSTICAS ================= -->
+    <div class="row g-4 mb-4">
+
+        <!-- Total Usuarios -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 h-100">
+                <div class="text-muted small">Total Usuarios</div>
+                <h3 class="fw-bold mt-2">@Model.TotalUsuarios</h3>
+                <div class="text-muted">En el sistema</div>
+            </div>
+        </div>
+
+        <!-- Total Cursos -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 h-100">
+                <div class="text-muted small">Total Cursos</div>
+                <h3 class="fw-bold mt-2">@Model.TotalCursos</h3>
+                <div class="text-muted">Activos</div>
+            </div>
+        </div>
+
+        <!-- Total Profesores -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 h-100">
+                <div class="text-muted small">Profesores</div>
+                <h3 class="fw-bold mt-2">@Model.TotalProfesores</h3>
+                <div class="text-muted">Personal docente</div>
+            </div>
+        </div>
+
+        <!-- Total Estudiantes -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 h-100">
+                <div class="text-muted small">Estudiantes</div>
+                <h3 class="fw-bold mt-2">@Model.TotalEstudiantes</h3>
+                <div class="text-muted">Activos</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================= ACCIONES RÁPIDAS ================= -->
+    <div class="row g-4 mb-4">
+
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h5 class="fw-semibold">Acciones de Administración</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+
+                        <!-- ✅ BOTÓN CORREGIDO -->
+                        <div class="col-md-4">
+                            <a asp-controller="CourseOfferings" asp-action="Index"
+                               class="btn btn-primary w-100 py-3">
+                                <i class="bi bi-collection me-2"></i>
+                                Gestionar Oferta de Cursos
+                            </a>
+                        </div>
+
+                        <div class="col-md-4">
+                            <a asp-controller="Cursos" asp-action="Index"
+                               class="btn btn-success w-100 py-3">
+                                <i class="bi bi-book me-2"></i>
+                                Gestionar Cursos
+                            </a>
+                        </div>
+
+                        <div class="col-md-4">
+                            <a asp-controller="Audit" asp-action="Index"
+                               class="btn btn-info w-100 py-3">
+                                <i class="bi bi-list-check me-2"></i>
+                                Ver Registros de Actividad
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================= ACTIVIDAD RECIENTE ================= -->
+    <div class="row">
+
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h5 class="fw-semibold">Actividad Reciente</h5>
+                </div>
+                <div class="card-body p-0">
+
+                    @if (Model.ActividadReciente?.Any() == true)
+                    {
+                        <ul class="list-group list-group-flush">
+
+                            @foreach (var actividad in Model.ActividadReciente)
+                            {
+                                <li class="list-group-item">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-8">
+                                            <div class="fw-semibold">@actividad.Mensaje</div>
+                                            <div class="small text-muted">Tipo: @actividad.Tipo</div>
+                                        </div>
+                                        <div class="col-md-4 text-end">
+                                            <span class="badge bg-light text-dark">
+                                                @actividad.Fecha.ToString("dd/MM/yyyy HH:mm")
+                                            </span>
+                                        </div>
+                                    </div>
+                                </li>
+                            }
+
+                        </ul>
+                    }
+                    else
+                    {
+                        <div class="p-3 text-muted">No hay actividad reciente.</div>
+                    }
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+    .card {
+        border-radius: 14px;
+    }
+</style>

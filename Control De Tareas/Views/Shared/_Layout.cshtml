@@ -1,0 +1,110 @@
+﻿@using Control_De_Tareas.Data
+@using Microsoft.AspNetCore.Identity
+@using Newtonsoft.Json
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Control De Tareas</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link href="~/css/side.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Control_De_Tareas.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-blue navbar-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Control De Tareas</a>
+
+            <div class="d-flex align-items-center">
+
+                @{
+                    var userSession = Context.Session.GetString("UserSession");
+                    var usuarioAutenticado = !string.IsNullOrEmpty(userSession);
+                    UserVm usuario = null;
+
+                    if (usuarioAutenticado)
+                    {
+                        try
+                        {
+                            var sesionBytes = Convert.FromBase64String(userSession);
+                            var sesionJson = System.Text.Encoding.UTF8.GetString(sesionBytes);
+                            usuario = JsonConvert.DeserializeObject<UserVm>(sesionJson);
+                        }
+                        catch
+                        {
+                            usuarioAutenticado = false;
+                        }
+                    }
+                }
+                @if (usuarioAutenticado && usuario != null)
+            {
+                <span class="text-white me-3">
+                    Bienvenido, @usuario.Nombre
+                    @if (usuario.Rol.Nombre == "Administrador")
+                    {
+                        <span class="badge bg-danger ms-2">Administrador</span>
+                    }
+                    else if (usuario.Rol.Nombre == "Profesor")
+                    {
+                        <span class="badge bg-success ms-2">Profesor</span>
+                    }
+                    else if (usuario.Rol.Nombre== "Estudiante")
+                    {
+                        <span class="badge bg-info ms-2">Estudiante</span>
+                    }
+                </span>
+
+                    <a asp-controller="Account"
+                       asp-action="Logout"
+                       class="text-white d-flex align-items-center ms-3"
+                       style="text-decoration:none;">
+                        <i class="fas fa-sign-out-alt me-2"></i>
+                        Cerrar Sesión
+                    </a>
+                }
+                else
+                {
+                    <span class="text-white me-3">Invitado</span>
+
+                  
+                }
+
+
+
+                <button class="navbar-toggler d-md-none ms-2" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            @await Html.PartialAsync("_Sidebar")
+
+            <!-- Main content -->
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4" style="margin-left: 250px; padding-top: 80px; transition: margin-left 0.3s ease;">
+                <div class="container">
+                    @RenderBody()
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

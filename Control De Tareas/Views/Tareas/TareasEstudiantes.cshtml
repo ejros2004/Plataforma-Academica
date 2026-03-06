@@ -1,0 +1,64 @@
+﻿@model IEnumerable<dynamic>
+@{
+    ViewData["Title"] = "Mis tareas";
+    var now = DateTime.UtcNow;
+}
+
+<h2>Mis tareas</h2>
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>Curso</th>
+            <th>Título</th>
+            <th>Fecha límite</th>
+            <th>Estado</th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model)
+        {
+            var t = item.Tarea as Control_De_Tareas.Data.Entitys.Tareas;
+            var s = item.Submission as Control_De_Tareas.Data.Entitys.Submissions;
+
+            string estado = "Pendiente";
+
+            if (s != null)
+            {
+                estado = s.CurrentGrade.HasValue ? "Calificada" : "Entregada";
+            }
+            else if (t.DueDate < now)
+            {
+                estado = "Atrasada";
+            }
+
+            string badgeClass =
+            estado == "Calificada" ? "badge bg-success" :
+            estado == "Entregada" ? "badge bg-primary" :
+            estado == "Atrasada" ? "badge bg-danger" :
+            "badge bg-warning text-dark";
+
+            <tr>
+                <td>@t.CourseOffering?.Course?.Description</td>
+                <td>@t.Title</td>
+                <td>@t.DueDate.ToLocalTime().ToString("g")</td>
+                <td><span class="@badgeClass">@estado</span></td>
+                <td>
+                    <a asp-action="Detalle" asp-route-id="@t.Id"
+                       class="btn btn-sm btn-outline-primary">Ver</a>
+
+                    @if (s == null)
+                    {
+                        <a asp-controller="Submissions" asp-action="Create"
+                           asp-route-assignmentId="@t.Id"
+                           class="btn btn-sm btn-outline-success">Entregar</a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+

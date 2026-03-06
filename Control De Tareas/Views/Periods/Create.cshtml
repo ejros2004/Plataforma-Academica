@@ -1,0 +1,179 @@
+@model Control_De_Tareas.Models.PeriodVm
+@{
+    ViewData["Title"] = "Crear Período";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h3 text-primary">
+                    <i class="fas fa-plus-circle me-2"></i>Crear Nuevo Período
+                </h2>
+                <a href="@Url.Action("Index", "Periods")" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </a>
+            </div>
+
+            <!-- Mensajes de validación -->
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Errores en el formulario
+                    </h6>
+                    <ul class="mb-0">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <li>@error.ErrorMessage</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <!-- Formulario -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calendar-plus me-2"></i>Información del Período
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="Create">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label for="Name" class="form-label">
+                                <i class="fas fa-font me-2"></i>Nombre del Período *
+                            </label>
+                            <input type="text" class="form-control" id="Name" name="Name"
+                                   value="@Model.Name" placeholder="Ej: 2024-I, 2024-II, Verano 2024" required
+                                   maxlength="50">
+                            <span class="text-danger field-validation-valid"
+                                  data-valmsg-for="Name" data-valmsg-replace="true"></span>
+                            <small class="text-muted">Ejemplo: 2024-I (Primer semestre 2024)</small>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="StartDate" class="form-label">
+                                    <i class="fas fa-calendar-day me-2"></i>Fecha de Inicio *
+                                </label>
+                                <input type="date" class="form-control" id="StartDate" name="StartDate"
+                                       value="@Model.StartDate.ToString("yyyy-MM-dd")" required>
+                                <span class="text-danger field-validation-valid"
+                                      data-valmsg-for="StartDate" data-valmsg-replace="true"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="EndDate" class="form-label">
+                                    <i class="fas fa-calendar-day me-2"></i>Fecha de Fin *
+                                </label>
+                                <input type="date" class="form-control" id="EndDate" name="EndDate"
+                                       value="@Model.EndDate.ToString("yyyy-MM-dd")" required>
+                                <span class="text-danger field-validation-valid"
+                                      data-valmsg-for="EndDate" data-valmsg-replace="true"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="IsActive" name="IsActive"
+                                       value="true" @(Model.IsActive ? "checked" : "")>
+                                <input type="hidden" name="IsActive" value="false" />
+                                <label class="form-check-label" for="IsActive">
+                                    <i class="fas fa-toggle-on me-2"></i>
+                                    @if (Model.IsActive)
+                                    {
+                                        <span>Activar este período (se desactivarán otros períodos activos)</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Crear período inactivo</span>
+                                    }
+                                </label>
+                            </div>
+                            <small class="text-muted">
+                                @if (Model.IsActive)
+                                {
+                                    <span class="text-warning">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        Al activar este período, cualquier período activo actual será desactivado automáticamente.
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span>Puedes activarlo después desde la lista de períodos.</span>
+                                }
+                            </small>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-info-circle me-2"></i>Recomendaciones:
+                            </h6>
+                            <ul class="mb-0 small">
+                                <li>Usa nombres consistentes: AÑO-NÚMERO (Ej: 2024-I, 2024-II)</li>
+                                <li>La duración típica es de 4-6 meses (120-180 días)</li>
+                                <li>Verifica que las fechas no se solapen con otros períodos</li>
+                                <li>Puedes crear el período inactivo y activarlo después</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="@Url.Action("Index", "Periods")" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check me-2"></i>Crear Período
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Validación de fechas
+        document.addEventListener('DOMContentLoaded', function() {
+            const startDateInput = document.getElementById('StartDate');
+            const endDateInput = document.getElementById('EndDate');
+
+            // Validar que la fecha fin sea mayor que fecha inicio
+            document.querySelector('form').addEventListener('submit', function(e) {
+                const startDate = new Date(startDateInput.value);
+                const endDate = new Date(endDateInput.value);
+
+                if (endDate <= startDate) {
+                    e.preventDefault();
+                    alert('La fecha de fin debe ser posterior a la fecha de inicio');
+                    endDateInput.focus();
+                    return;
+                }
+
+                // Validar duración mínima (30 días)
+                const diffTime = Math.abs(endDate - startDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays < 30) {
+                    e.preventDefault();
+                    alert('La duración mínima del período es de 30 días');
+                    endDateInput.focus();
+                    return;
+                }
+
+                // Validar duración máxima (365 días)
+                if (diffDays > 365) {
+                    e.preventDefault();
+                    alert('La duración máxima del período es de 365 días');
+                    endDateInput.focus();
+                    return;
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,490 @@
+﻿@model List<Control_De_Tareas.Models.CourseOfferingVm>
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+@{
+    ViewData["Title"] = "Cursos Disponibles para Matrícula";
+    Layout = "_Layout"; // Asegurar layout
+
+    // Obtener token anti-forgery
+    var tokens = Antiforgery.GetAndStoreTokens(Context);
+    var requestToken = tokens.RequestToken;
+}
+
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 text-primary">
+                <i class="bi bi-book me-2"></i> @ViewData["Title"]
+            </h1>
+            <p class="text-muted mb-0">
+                Catálogo de cursos abiertos para inscripción
+            </p>
+        </div>
+        <div>
+            <a href="@Url.Action("MisCursos")" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left me-1"></i> Volver a Mis Cursos
+            </a>
+        </div>
+    </div>
+
+    <!-- Mensajes -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Token Anti-Forgery oculto -->
+    @Html.AntiForgeryToken()
+
+    <!-- Contador de cursos -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="bi bi-book display-6"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0">Cursos Disponibles</h5>
+                            <p class="display-6 mb-0">@Model.Count</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de cursos -->
+    @if (!Model.Any())
+    {
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-emoji-frown display-1 text-muted mb-3"></i>
+                <h4 class="text-muted">No hay cursos disponibles</h4>
+                <p class="text-muted">
+                    En este momento no hay cursos disponibles para inscripción.
+                    <br />
+                    Intenta más tarde o contacta al administrador del sistema.
+                </p>
+                <a href="@Url.Action("MisCursos")" class="btn btn-primary mt-3">
+                    <i class="bi bi-arrow-left me-1"></i> Volver a Mis Cursos
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-grid-3x3-gap me-2"></i>
+                        Lista de Cursos Disponibles
+                    </h5>
+                    <div class="input-group" style="width: 300px;">
+                        <span class="input-group-text">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" id="searchInput" class="form-control" placeholder="Buscar curso...">
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="coursesTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th width="25%">Curso</th>
+                                <th>Sección</th>
+                                <th>Profesor</th>
+                                <th>Período</th>
+                                <th>Inscritos</th>
+                                <th>Estado</th>
+                                <th width="15%">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var course in Model)
+                            {
+                                var isAvailable = course.IsActive &&
+                                course.PeriodEndDate >= DateTime.Now.Date &&
+                                course.PeriodStartDate <= DateTime.Now.Date;
+
+                                <tr data-course-name="@course.CourseName.ToLower()"
+                                    data-course-code="@course.CourseCode.ToLower()"
+                                    data-professor="@course.ProfessorName.ToLower()">
+                                    <td>
+                                        <div>
+                                            <strong class="d-block">@course.CourseName</strong>
+                                            <small class="text-muted">@course.CourseCode</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">@course.Section</span>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <span class="d-block">@course.ProfessorName</span>
+                                            <small class="text-muted">@course.ProfessorEmail</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <small class="d-block">@course.PeriodName</small>
+                                            <small class="text-muted">
+                                                @course.PeriodStartDate?.ToString("dd/MM/yyyy") -
+                                                @course.PeriodEndDate?.ToString("dd/MM/yyyy")
+                                            </small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@course.EnrolledStudentsCount</span>
+                                    </td>
+                                    <td>
+                                        @if (isAvailable)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check-circle me-1"></i> Disponible
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="bi bi-x-circle me-1"></i> No disponible
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            @if (isAvailable)
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-success enroll-btn"
+                                                        data-course-id="@course.Id"
+                                                        data-course-name="@course.CourseName - @course.Section">
+                                                    <i class="bi bi-person-plus"></i> Inscribirse
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-secondary" disabled>
+                                                    <i class="bi bi-lock"></i> No disponible
+                                                </button>
+                                            }
+
+                                            <a href="@Url.Action("Details", new { id = course.Id })"
+                                               class="btn btn-info"
+                                               title="Ver detalles">
+                                                <i class="bi bi-info-circle"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mensaje cuando no hay resultados en búsqueda -->
+                <div id="noResults" class="text-center py-5 d-none">
+                    <i class="bi bi-search display-1 text-muted mb-3"></i>
+                    <h5 class="text-muted">No se encontraron cursos</h5>
+                    <p class="text-muted">Intenta con otros términos de búsqueda.</p>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal de confirmación -->
+<div class="modal fade" id="enrollModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Inscripción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="modalMessage">¿Estás seguro de inscribirte en este curso?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="confirmEnroll">Sí, Inscribirme</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Variables globales
+        let currentCourseId = null;
+        let currentCourseName = null;
+
+        // Función para obtener token anti-forgery
+        function getAntiForgeryToken() {
+            // Intentar obtener del formulario
+            const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (tokenElement && tokenElement.value) {
+                return tokenElement.value;
+            }
+
+            // Intentar obtener de las cookies
+            const cookieToken = getCookie('XSRF-TOKEN');
+            if (cookieToken) {
+                return decodeURIComponent(cookieToken);
+            }
+
+            // Intentar obtener del header meta
+            const metaToken = document.querySelector('meta[name="__RequestVerificationToken"]');
+            if (metaToken && metaToken.content) {
+                return metaToken.content;
+            }
+
+            console.warn('No se encontró token anti-forgery');
+            return '';
+        }
+
+        // Función auxiliar para leer cookies
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        }
+
+        // 1. Búsqueda en tiempo real
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                const rows = document.querySelectorAll('#coursesTable tbody tr');
+                let visibleCount = 0;
+
+                rows.forEach(row => {
+                    const courseName = row.getAttribute('data-course-name') || '';
+                    const courseCode = row.getAttribute('data-course-code') || '';
+                    const professor = row.getAttribute('data-professor') || '';
+
+                    const matches = courseName.includes(searchTerm) ||
+                                   courseCode.includes(searchTerm) ||
+                                   professor.includes(searchTerm);
+
+                    if (matches || searchTerm === '') {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                // Mostrar/ocultar mensaje de "no resultados"
+                const noResults = document.getElementById('noResults');
+                if (visibleCount === 0 && searchTerm !== '') {
+                    noResults?.classList.remove('d-none');
+                } else {
+                    noResults?.classList.add('d-none');
+                }
+            });
+        }
+
+        // 2. Manejar clic en botón "Inscribirse"
+        document.querySelectorAll('.enroll-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                currentCourseId = this.getAttribute('data-course-id');
+                currentCourseName = this.getAttribute('data-course-name');
+
+                if (!currentCourseId || !currentCourseName) {
+                    alert('Error: No se pudo obtener la información del curso.');
+                    return;
+                }
+
+                // Actualizar mensaje del modal
+                const modalMessage = document.getElementById('modalMessage');
+                if (modalMessage) {
+                    modalMessage.textContent = `¿Estás seguro de inscribirte en "${currentCourseName}"?`;
+                }
+
+                // Mostrar modal
+                const modalElement = document.getElementById('enrollModal');
+                if (modalElement) {
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                }
+            });
+        });
+
+        // 3. Confirmar inscripción - VERSIÓN CORREGIDA
+        const confirmEnrollBtn = document.getElementById('confirmEnroll');
+        if (confirmEnrollBtn) {
+            confirmEnrollBtn.addEventListener('click', async function() {
+                const button = this;
+                const originalText = button.innerHTML;
+
+                // Validar que tengamos courseId
+                if (!currentCourseId) {
+                    alert('Error: No se seleccionó ningún curso.');
+                    return;
+                }
+
+                // Mostrar loading
+                button.innerHTML = '<i class="bi bi-hourglass-split"></i> Procesando...';
+                button.disabled = true;
+
+                try {
+                    // Obtener token anti-forgery
+                    const token = getAntiForgeryToken();
+
+                    if (!token) {
+                        throw new Error('No se pudo obtener el token de seguridad. Recarga la página e intenta nuevamente.');
+                    }
+
+                    // Crear form data
+                    const formData = new FormData();
+                    formData.append('courseOfferingId', currentCourseId);
+                    formData.append('__RequestVerificationToken', token);
+
+                    // Enviar solicitud
+                    const response = await fetch('@Url.Action("MatricularEstudiante", "CourseOfferings")', {
+                        method: 'POST',
+                        headers: {
+                            'RequestVerificationToken': token
+                        },
+                        body: new URLSearchParams({
+                            courseOfferingId: currentCourseId,
+                            __RequestVerificationToken: token
+                        })
+                    });
+
+                    // Verificar respuesta
+                    if (!response.ok) {
+                        throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Mostrar mensaje de éxito
+                        showToast('success', data.message);
+
+                        // Cerrar modal
+                        const modalElement = document.getElementById('enrollModal');
+                        if (modalElement) {
+                            const modal = bootstrap.Modal.getInstance(modalElement);
+                            if (modal) {
+                                modal.hide();
+                            }
+                        }
+
+                        // Recargar la página después de 1.5 segundos
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        throw new Error(data.message || 'Error desconocido');
+                    }
+
+                } catch (error) {
+                    console.error('Error en matrícula:', error);
+                    showToast('error', error.message || 'Error de conexión. Intenta nuevamente.');
+
+                    // Restaurar botón
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+
+                    // Cerrar modal si hay error
+                    const modalElement = document.getElementById('enrollModal');
+                    if (modalElement) {
+                        const modal = bootstrap.Modal.getInstance(modalElement);
+                        if (modal) {
+                            modal.hide();
+                        }
+                    }
+                }
+            });
+        }
+
+        // Función para mostrar notificaciones tipo toast
+        function showToast(type, message) {
+            // Crear contenedor si no existe
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                document.body.appendChild(toastContainer);
+            }
+
+            // Crear toast
+            const toastId = 'toast-' + Date.now();
+            const toastHtml = `
+                <div id="${toastId}" class="toast align-items-center text-bg-${type} border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+
+            // Mostrar toast
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, { delay: 5000 });
+            toast.show();
+
+            // Remover del DOM después de ocultarse
+            toastElement.addEventListener('hidden.bs.toast', function () {
+                this.remove();
+            });
+        }
+
+        // 4. Inicializar tooltips
+        document.addEventListener('DOMContentLoaded', function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+
+        // 5. Agregar estilos CSS adicionales para los toasts
+        const style = document.createElement('style');
+        style.textContent = `
+            .toast-container {
+                z-index: 9999;
+            }
+            .enroll-btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+            #coursesTable tbody tr:hover {
+                background-color: rgba(0, 123, 255, 0.05);
+            }
+            .card {
+                border: none;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .card-header {
+                border-bottom: 2px solid #dee2e6;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+}

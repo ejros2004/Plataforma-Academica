@@ -1,0 +1,57 @@
+﻿@{
+    ViewData["Title"] = "Test de Estructura de Carpetas";
+}
+
+<div class="container mt-5">
+    <h2>Prueba de Estructura de Carpetas - TM-150</h2>
+
+    <div class="card mt-4">
+        <div class="card-header bg-primary text-white">
+            <h4>Resultado de la Prueba</h4>
+        </div>
+        <div class="card-body">
+            @if (ViewBag.Error == null)
+            {
+                <div class="alert alert-success" role="alert">
+                    <strong>✅ @ViewBag.Message</strong>
+                </div>
+
+                <table class="table table-bordered">
+                    <tr>
+                        <th>CourseOffering ID:</th>
+                        <td>@ViewBag.CourseOfferingId</td>
+                    </tr>
+                    <tr>
+                        <th>Task ID:</th>
+                        <td>@ViewBag.TaskId</td>
+                    </tr>
+                    <tr>
+                        <th>Ruta creada:</th>
+                        <td><code>@ViewBag.Path</code></td>
+                    </tr>
+                    <tr>
+                        <th>¿Carpeta existe?</th>
+                        <td><strong>@ViewBag.Exists</strong></td>
+                    </tr>
+                </table>
+
+                <div class="alert alert-info mt-3">
+                    <strong>📁 Verifica físicamente:</strong><br>
+                    Ve a tu carpeta del proyecto y busca:<br>
+                    <code>uploads/courseOffering_1/task_5/</code>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-danger" role="alert">
+                    <strong>❌ @ViewBag.Message</strong><br>
+                    <small>@ViewBag.Error</small>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">Volver al inicio</a>
+    </div>
+</div>

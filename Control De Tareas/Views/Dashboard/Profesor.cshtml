@@ -1,0 +1,212 @@
+﻿@model Control_De_Tareas.Models.ProfesorDashboardVm
+@{
+    ViewData["Title"] = "Dashboard - Profesor";
+}
+
+<div class="container-fluid p-4">
+
+    <!-- ENCABEZADO -->
+    <div class="mb-4">
+        <h2 class="fw-bold">Bienvenido, @Model.Profesor</h2>
+        <p class="text-muted">Panel de control del profesor</p>
+    </div>
+
+    <!-- ================= TARJETAS SUPERIORES ================= -->
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 h-100">
+                <div class="text-muted small">Mis Cursos</div>
+                <h3 class="fw-bold mt-2">@Model.Cursos?.Count</h3>
+                <div class="text-muted">Cursos activos</div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 h-100">
+                <div class="text-muted small">Tareas Activas</div>
+                <h3 class="fw-bold mt-2">@Model.TareasActivas</h3>
+                <div class="text-muted">Pendientes de revisión</div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 h-100">
+                <div class="text-muted small">Por Calificar</div>
+                <h3 class="fw-bold mt-2">@Model.PendientesCalificar</h3>
+                <div class="text-muted">Entregas pendientes</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================= ACCIONES + PRÓXIMAS ENTREGAS ================= -->
+    <div class="row g-4 mb-4">
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h5 class="fw-semibold">Acciones Rápidas</h5>
+                </div>
+
+                <div class="card-body d-grid gap-3">
+
+                    <!-- ✅ AHORA VA A TAREAS -->
+                    <a asp-controller="CourseOfferings" asp-action="MisCursos"
+                       class="btn btn-primary btn-lg">
+                        Ver Mis Cursos
+                    </a>
+
+                    <a asp-controller="Tareas" asp-action="Crear"
+                       class="btn btn-outline-secondary btn-lg">
+                        Crear Nueva Tarea
+                    </a>
+
+                    <!-- ✅ AHORA VA A SUBMISSIONS -->
+                    <a asp-controller="Submissions" asp-action="Index"
+                       class="btn btn-outline-secondary btn-lg">
+                        Calificar Entregas
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Próximas entregas -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h5 class="fw-semibold">Próximas Entregas</h5>
+                </div>
+
+                <div class="card-body p-0">
+
+                    @if (Model.ProximasEntregas != null && Model.ProximasEntregas.Any())
+                    {
+                        <ul class="list-group list-group-flush">
+
+                            @foreach (var e in Model.ProximasEntregas)
+                            {
+                                var days = (e.DueDate.Date - DateTime.Now.Date).Days;
+
+                                string badge = days <= 0 ? "Hoy" : days == 1 ? "Mañana" : $"{days} días";
+                                string badgeClass = days <= 0 ? "bg-danger text-white"
+                                : days == 1 ? "bg-warning text-dark"
+                                : "bg-success text-white";
+
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-semibold">@e.TaskTitle</div>
+                                        <div class="small text-muted">@e.CourseTitle</div>
+                                        <div class="small text-muted">@e.StudentsCount estudiantes</div>
+                                    </div>
+
+                                    <span class="badge @badgeClass px-3 py-2">@badge</span>
+                                </li>
+                            }
+
+                        </ul>
+                    }
+                    else
+                    {
+                        <div class="p-3 text-muted">No hay entregas próximas.</div>
+                    }
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================= CURSOS Y TAREAS ================= -->
+
+    <div class="row g-4">
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h5 class="fw-semibold">Cursos asignados (@Model.Cursos?.Count)</h5>
+                </div>
+
+                <div class="card-body p-0">
+                    @if (Model.Cursos != null && Model.Cursos.Any())
+                    {
+                        <ul class="list-group list-group-flush">
+
+                            @foreach (var c in Model.Cursos)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-semibold">@c.Titulo (@c.Codigo)</div>
+                                        <div class="small text-muted">Sección: @c.Seccion</div>
+                                    </div>
+
+                                    <!-- ✅ VA A TAREAS -->
+                                    <a asp-controller="Tareas" asp-action="Index"
+                                       class="btn btn-outline-secondary btn-sm">
+                                        Ver
+                                    </a>
+                                </li>
+                            }
+
+                        </ul>
+                    }
+                    else
+                    {
+                        <div class="p-3 text-muted">No tienes cursos asignados.</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ✅ TAREAS POR CALIFICAR -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h5 class="fw-semibold">Tareas por calificar (@Model.TareasPorCalificar?.Count)</h5>
+                </div>
+
+                <div class="card-body p-0">
+                    @if (Model.TareasPorCalificar != null && Model.TareasPorCalificar.Any())
+                    {
+                        <ul class="list-group list-group-flush">
+
+                            @foreach (var t in Model.TareasPorCalificar)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-semibold">@t.Titulo</div>
+                                        <div class="small text-muted">@t.Descripcion</div>
+                                        <div class="small text-muted">
+                                            Entrega: @t.FechaEntrega.ToString("dd/MM/yyyy")
+                                        </div>
+                                    </div>
+
+                                    <!-- ✅ AHORA VA AL REVIEW REAL -->
+                                    <a asp-controller="Submissions" asp-action="Review"
+                                       asp-route-taskId="@t.Id"
+                                       class="btn btn-primary btn-sm">
+                                        Calificar
+                                    </a>
+                                </li>
+                            }
+
+                        </ul>
+                    }
+                    else
+                    {
+                        <div class="p-3 text-muted">No hay tareas pendientes.</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+    .card {
+        border-radius: 14px;
+    }
+</style>

@@ -1,0 +1,129 @@
+﻿@model Control_De_Tareas.Models.TareaEditVm
+@{
+    ViewData["Title"] = "Editar Tarea";
+    var course = ViewBag.CourseOffering as Control_De_Tareas.Data.Entitys.CourseOfferings;
+    var userRole = ViewBag.UserRole as string;
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-soft border-0">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0 fw-semibold">
+                        <i class="bi bi-pencil-square text-primary me-2"></i>
+                        Editar Tarea
+                    </h4>
+                    <p class="text-muted mb-0">
+                        @(course?.Course?.Description ?? "Curso") - @Model.Title
+                    </p>
+                </div>
+
+                <div class="card-body">
+                    <!-- MENSAJES DE ERROR -->
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form asp-action="Editar" method="post" novalidate>
+                        @Html.AntiForgeryToken()
+
+                        <!-- CAMPOS OCULTOS -->
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="CourseOfferingId" />
+                        <input type="hidden" asp-for="CreatedBy" />
+
+                        <!-- CURSO (solo lectura) -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Curso</label>
+                            <div class="form-control bg-light">
+                                <i class="bi bi-book me-2 text-primary"></i>
+                                @(course?.Course?.Title ?? "Curso no disponible")
+                            </div>
+                            <small class="text-muted">El curso no puede ser modificado después de crear la tarea.</small>
+                        </div>
+
+                        <!-- TÍTULO -->
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label fw-semibold"></label>
+                            <input asp-for="Title" class="form-control" placeholder="Ingresa el título de la tarea" />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+
+                        <!-- DESCRIPCIÓN -->
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-semibold"></label>
+                            <textarea asp-for="Description" class="form-control" rows="5"
+                                      placeholder="Describe los detalles de la tarea..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+
+                        <!-- FECHA LÍMITE -->
+                        <div class="mb-3">
+                            <label asp-for="DueDate" class="form-label fw-semibold"></label>
+                            @{
+                                var dueDateLocal = Model.DueDate.ToLocalTime();
+                                var dueDateString = dueDateLocal.ToString("yyyy-MM-ddTHH:mm");
+                            }
+                            <input asp-for="DueDate" type="datetime-local" class="form-control"
+                                   value="@dueDateString" />
+                            <span asp-validation-for="DueDate" class="text-danger small"></span>
+                            <small class="text-muted">Fecha y hora límite para entregar la tarea.</small>
+                        </div>
+
+                        <!-- PUNTUACIÓN MÁXIMA -->
+                        <div class="mb-4">
+                            <label asp-for="MaxScore" class="form-label fw-semibold"></label>
+                            <input asp-for="MaxScore" class="form-control" type="number" step="0.01" min="0"
+                                   placeholder="Ej: 100" />
+                            <span asp-validation-for="MaxScore" class="text-danger small"></span>
+                            <small class="text-muted">Puntuación máxima que puede obtener el estudiante (ej: 100, 99.5, 85.0).</small>
+                        </div>
+
+                        <!-- BOTONES -->
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                            <div>
+                                <a asp-action="Index" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left me-1"></i> Volver
+                                </a>
+                            </div>
+                            <div>
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="bi bi-check-circle me-1"></i> Guardar Cambios
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Auto-ocultar alertas después de 5 segundos
+        document.addEventListener('DOMContentLoaded', function() {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    var bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+
+            // Establecer min/max para fecha
+            var today = new Date().toISOString().slice(0, 16);
+            document.getElementById('DueDate').min = today;
+        });
+    </script>
+}

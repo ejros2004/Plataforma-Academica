@@ -1,0 +1,153 @@
+﻿@model Control_De_Tareas.Models.EstudianteDashboardVm
+@{
+    ViewData["Title"] = "Dashboard - Estudiante";
+}
+
+<div class="container-fluid p-4">
+    <h3 class="mb-1">Bienvenido, @Model.NombreEstudiante</h3>
+    <p class="text-muted">Tu progreso académico</p>
+
+    <!-- TARJETAS -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card p-3 shadow-sm">
+                <small class="text-muted">Cursos inscritos</small>
+                <h3>@Model.CursosInscritos?.Count</h3>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card p-3 shadow-sm">
+                <small class="text-muted">Tareas pendientes</small>
+                <h3>@Model.TareasPendientes?.Count</h3>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card p-3 shadow-sm">
+                <small class="text-muted">Promedio general</small>
+                <h3>@(Model.PromedioGeneral?.ToString("F2") ?? "-")</h3>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card p-3 shadow-sm">
+                <small class="text-muted">Próximas entregas</small>
+                <h3>@Model.ProximasEntregas?.Count</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- CURSOS INSCRITOS -->
+        <div class="col-lg-5 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header"><strong>Cursos inscritos</strong></div>
+                <div class="card-body p-0">
+                    @if (Model.CursosInscritos?.Any() == true)
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var c in Model.CursosInscritos)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-semibold">@c.Curso</div>
+                                        <div class="small text-muted">Sección: @c.Seccion</div>
+                                    </div>
+
+                                    <!-- ✅ VER → VA A TODAS SUS TAREAS -->
+                                    <a asp-controller="Tareas"
+                                       asp-action="TareasEstudiantes"
+                                       class="btn btn-outline-primary btn-sm">
+                                        Ver
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <div class="p-3 text-muted">No estás inscrito en cursos.</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- TAREAS PENDIENTES -->
+        <div class="col-lg-7 mb-4">
+            <div class="card shadow-sm mb-3">
+                <div class="card-header">
+                    <strong>Tareas pendientes (@Model.TareasPendientes?.Count)</strong>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.TareasPendientes?.Any() == true)
+                    {
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tarea</th>
+                                    <th>Entrega</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var t in Model.TareasPendientes)
+                                {
+                                    <tr>
+                                        <td>@t.TituloTarea</td>
+                                        <td>@t.FechaEntrega.ToString("dd/MM/yyyy")</td>
+                                        <td class="text-end">
+
+                                            <!-- ✅ ENTREGAR → Submissions/Create -->
+                                            <a asp-controller="Submissions"
+                                               asp-action="Create"
+                                               asp-route-taskId="@t.TareaId"
+                                               class="btn btn-primary btn-sm">
+                                                Entregar
+                                            </a>
+
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="p-3 text-muted">No tienes tareas pendientes.</div>
+                    }
+                </div>
+            </div>
+
+            <!-- CALIFICACIONES -->
+            <div class="card shadow-sm">
+                <div class="card-header"><strong>Últimas calificaciones</strong></div>
+                <div class="card-body p-0">
+                    @if (Model.UltimasCalificaciones?.Any() == true)
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var c in Model.UltimasCalificaciones)
+                            {
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <div>
+                                        <div class="fw-semibold">@c.Tarea</div>
+                                        <div class="small text-muted">@c.Curso</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <strong>@c.Nota</strong>
+                                        <div class="small text-muted">@c.Fecha.ToString("dd/MM/yyyy")</div>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <div class="p-3 text-muted">Aún no tienes calificaciones.</div>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -1,0 +1,140 @@
+@model Control_De_Tareas.Models.CourseOfferingVm
+@{
+    ViewData["Title"] = "Crear Nueva Oferta de Curso";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 text-primary">
+                    <i class="bi bi-plus-circle"></i> Crear Nueva Oferta de Curso
+                </h1>
+                <a href="@Url.Action("ListadoOfertas", "CourseOfferings")" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+            </div>
+
+            <!-- Formulario -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-journal-plus"></i> Información de la Oferta
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="row">
+                            <!-- Curso -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CourseId" class="form-label">
+                                    <i class="bi bi-book"></i> Curso *
+                                </label>
+                                <select asp-for="CourseId" class="form-select" required>
+                                    <option value="">-- Seleccionar Curso --</option>
+                                    @foreach (var curso in ViewBag.Courses)
+                                    {
+                                        <option value="@curso.Value">@curso.Text</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="CourseId" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Profesor -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ProfessorId" class="form-label">
+                                    <i class="bi bi-person-badge"></i> Profesor *
+                                </label>
+                                <select asp-for="ProfessorId" class="form-select" required>
+                                    <option value="">-- Seleccionar Profesor --</option>
+                                    @foreach (var profesor in ViewBag.Professors)
+                                    {
+                                        <option value="@profesor.Value">@profesor.Text</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="ProfessorId" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Período -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PeriodId" class="form-label">
+                                    <i class="bi bi-calendar"></i> Período *
+                                </label>
+                                <select asp-for="PeriodId" class="form-select" required>
+                                    <option value="">-- Seleccionar Período --</option>
+                                    @foreach (var periodo in ViewBag.Periods)
+                                    {
+                                        <option value="@periodo.Value">@periodo.Text</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="PeriodId" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Sección -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Section" class="form-label">
+                                    <i class="bi bi-hash"></i> Sección *
+                                </label>
+                                <input asp-for="Section" class="form-control" 
+                                       placeholder="Ej: A, B, 01, 02" required />
+                                <span asp-validation-for="Section" class="text-danger small"></span>
+                                <small class="text-muted">Identificador único de la sección dentro del período</small>
+                            </div>
+                        </div>
+
+                        <!-- Estado -->
+                        <div class="mb-4">
+                            <div class="form-check form-switch">
+                                <input asp-for="IsActive" class="form-check-input" type="checkbox" role="switch" checked />
+                                <label asp-for="IsActive" class="form-check-label">
+                                    <i class="bi bi-toggle-on"></i> Oferta Activa
+                                </label>
+                            </div>
+                            <small class="text-muted">
+                                Si está activa, los estudiantes podrán ver y matricularse en el curso
+                            </small>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-flex justify-content-between">
+                            <a href="@Url.Action("ListadoOfertas")" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Crear Oferta
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    
+    <script>
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const section = document.querySelector('#Section').value.trim();
+            if (!section) {
+                alert('La sección es requerida');
+                e.preventDefault();
+                return;
+            }
+            
+            const sectionRegex = /^[A-Za-z0-9]+$/;
+            if (!sectionRegex.test(section)) {
+                alert('La sección solo puede contener letras y números sin espacios');
+                e.preventDefault();
+            }
+        });
+    </script>
+}

@@ -1,0 +1,190 @@
+@model Control_De_Tareas.Models.CourseOfferingVm
+@{
+    ViewData["Title"] = "Gestión de Inscripciones";
+    var enrolledStudents = ViewBag.EnrolledStudents as List<Control_De_Tareas.Models.EnrollmentVm> ?? new List<Control_De_Tareas.Models.EnrollmentVm>();
+    var availableStudents = ViewBag.AvailableStudents as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? new List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 text-primary">
+                <i class="bi bi-people"></i> Gestión de Inscripciones
+            </h1>
+            <p class="text-muted mb-0">
+                @Model.CourseName - @Model.Section | @Model.PeriodName
+            </p>
+        </div>
+        <a href="@Url.Action("MisCursos", "CourseOfferings")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a Mis Cursos
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Estudiantes Inscritos -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-list-check"></i> Estudiantes Inscritos
+                        <span class="badge bg-light text-primary ms-2">@enrolledStudents.Count</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (enrolledStudents.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Estudiante</th>
+                                        <th>Email</th>
+                                        <th>Fecha de Inscripción</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var student in enrolledStudents)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-sm bg-light rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                        <i class="bi bi-person text-primary"></i>
+                                                    </div>
+                                                    <span>@student.StudentName</span>
+                                                </div>
+                                            </td>
+                                            <td>@student.StudentEmail</td>
+                                            <td>@student.EnrolledAt.ToString("dd/MM/yyyy")</td>
+                                            <td>
+                                                <span class="badge @(student.Status == "Active" ? "bg-success" : "bg-secondary")">
+                                                    @student.Status
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <form method="post"
+                                                      action="@Url.Action("DesinscribirEstudiante", "CourseOfferings")"
+                                                      onsubmit="return confirm('¿Está seguro de desinscribir a este estudiante?')">
+                                                    <input type="hidden" name="courseOfferingId" value="@Model.Id" />
+                                                    <input type="hidden" name="studentId" value="@student.StudentId" />
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                        <i class="bi bi-person-dash"></i> Desinscribir
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="bi bi-people display-1 text-muted"></i>
+                            <h5 class="text-muted mt-3">No hay estudiantes inscritos</h5>
+                            <p class="text-muted">Agrega estudiantes usando el formulario de la derecha.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Agregar Estudiantes -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-person-plus"></i> Agregar Estudiante
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="@Url.Action("InscribirEstudiante", "CourseOfferings")">
+                        <input type="hidden" name="courseOfferingId" value="@Model.Id" />
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label class="form-label">Seleccionar Estudiante</label>
+                            <select name="studentId" class="form-select" required>
+                                <option value="">-- Seleccionar estudiante --</option>
+                                @foreach (var student in availableStudents)
+                                {
+                                    <option value="@student.Value">@student.Text</option>
+                                }
+                            </select>
+                            @if (!availableStudents.Any())
+                            {
+                                <div class="alert alert-warning mt-2 mb-0">
+                                    <small>
+                                        <i class="bi bi-info-circle"></i>
+                                        No hay estudiantes disponibles para inscripción.
+                                    </small>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit"
+                                    class="btn btn-success"
+                                    @(!availableStudents.Any() ? "disabled" : "")>
+                                <i class="bi bi-person-plus"></i> Inscribir Estudiante
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Información del Curso -->
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle"></i> Información del Curso
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">Curso:</dt>
+                        <dd class="col-sm-7">@Model.CourseName</dd>
+
+                        <dt class="col-sm-5">Código:</dt>
+                        <dd class="col-sm-7">@Model.CourseCode</dd>
+
+                        <dt class="col-sm-5">Sección:</dt>
+                        <dd class="col-sm-7">@Model.Section</dd>
+
+                        <dt class="col-sm-5">Período:</dt>
+                        <dd class="col-sm-7">@Model.PeriodName</dd>
+
+                        <dt class="col-sm-5">Profesor:</dt>
+                        <dd class="col-sm-7">@Model.ProfessorName</dd>
+
+                        <dt class="col-sm-5">Total Inscritos:</dt>
+                        <dd class="col-sm-7">
+                            <span class="badge bg-primary">@Model.EnrolledStudentsCount</span>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Buscar estudiantes en el dropdown
+        document.querySelector('select[name="studentId"]').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const options = e.target.options;
+
+            for (let i = 0; i < options.length; i++) {
+                const option = options[i];
+                const text = option.text.toLowerCase();
+                option.style.display = text.includes(searchTerm) ? '' : 'none';
+            }
+        });
+    </script>
+}

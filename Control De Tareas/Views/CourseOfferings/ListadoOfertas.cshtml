@@ -1,0 +1,198 @@
+@model List<Control_De_Tareas.Models.CourseOfferingVm>
+@{
+    ViewData["Title"] = "Gestión de Ofertas de Cursos";
+    var userRole = ViewBag.UserRole as string ?? "Administrador";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 text-primary">
+            <i class="bi bi-journal-plus"></i> Gestión de Ofertas de Cursos
+        </h1>
+        <div>
+            <a href="@Url.Action("Create", "CourseOfferings")" class="btn btn-primary me-2">
+                <i class="bi bi-plus-circle"></i> Nueva Oferta
+            </a>
+            <a href="@Url.Action("Index", "Cursos")" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Volver a Mis Cursos
+            </a>
+        </div>
+    </div>
+
+    <!-- Mensajes -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" asp-action="ListadoOfertas" class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Filtrar por Período</label>
+                    <select name="periodId" class="form-select" onchange="this.form.submit()">
+                        <option value="">Todos los períodos</option>
+                        @foreach (var period in ViewBag.Periods)
+                        {
+                            <option value="@period.Value" selected="@period.Selected">@period.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6 d-flex align-items-end">
+                    <a href="@Url.Action("ListadoOfertas")" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-clockwise"></i> Limpiar Filtro
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de Ofertas -->
+    <div class="card">
+        <div class="card-header bg-light py-3">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-list"></i> Lista de Ofertas
+                <span class="badge bg-secondary ms-2">@Model.Count</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Curso</th>
+                                <th>Sección</th>
+                                <th>Profesor</th>
+                                <th>Período</th>
+                                <th class="text-center">Estudiantes</th>
+                                <th class="text-center">Tareas</th>
+                                <th class="text-center">Anuncios</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var oferta in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@oferta.CourseName</strong>
+                                        <br />
+                                        <small class="text-muted">@oferta.CourseCode</small>
+                                    </td>
+                                    <td>@oferta.Section</td>
+                                    <td>
+                                        <div>@oferta.ProfessorName</div>
+                                        <small class="text-muted">@oferta.ProfessorEmail</small>
+                                    </td>
+                                    <td>
+                                        <div>@oferta.PeriodName</div>
+                                        <small class="text-muted">
+                                            @(oferta.PeriodStartDate?.ToString("dd/MM/yyyy") ?? "N/A") - @(oferta.PeriodEndDate?.ToString("dd/MM/yyyy") ?? "N/A")
+                                        </small>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">@oferta.EnrolledStudentsCount</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary">@oferta.TasksCount</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary">@oferta.AnnouncementsCount</span>
+                                    </td>
+                                    <td>
+                                        @if (oferta.IsActive)
+                                        {
+                                            <span class="badge bg-success">Activo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactivo</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <!-- Ver -->
+                                            <a href="@Url.Action("Details", new { id = oferta.Id })"
+                                               class="btn btn-outline-primary" title="Ver detalles">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+
+                                            <!-- Editar -->
+                                            <a href="@Url.Action("Edit", new { id = oferta.Id })"
+                                               class="btn btn-outline-warning" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+
+                                            <!-- Gestionar Inscripciones -->
+                                            <a href="@Url.Action("Index", new { id = oferta.Id })"
+                                               class="btn btn-outline-info" title="Gestionar inscripciones">
+                                                <i class="bi bi-people"></i>
+                                            </a>
+
+                                            <!-- Eliminar -->
+                                            <a href="@Url.Action("Delete", new { id = oferta.Id })"
+                                               class="btn btn-outline-danger" title="Eliminar">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-journal-x display-1 text-muted"></i>
+                    <h5 class="text-muted mt-3">No hay ofertas de cursos</h5>
+                    <p class="text-muted">
+                        @if (ViewBag.SelectedPeriodId != null)
+                        {
+                            <span>No hay ofertas para el período seleccionado.</span>
+                        }
+                        else
+                        {
+                            <span>Crea la primera oferta de curso.</span>
+                        }
+                    </p>
+                    <a href="@Url.Action("Create", "CourseOfferings")" class="btn btn-primary mt-3">
+                        <i class="bi bi-plus-circle"></i> Crear Nueva Oferta
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Confirmar eliminación
+        document.querySelectorAll('.btn-outline-danger').forEach(button => {
+            button.addEventListener('click', function(e) {
+                if (!confirm('¿Está seguro de eliminar esta oferta de curso?')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,97 @@
+﻿@model Control_De_Tareas.Data.Entitys.Tareas
+@{
+    ViewData["Title"] = "Detalle de Tarea";
+    var submission = ViewBag.Submission as Control_De_Tareas.Data.Entitys.Submissions;
+    var totalEntregas = ViewBag.TotalEntregas as int?;
+    var entregasCalificadas = ViewBag.EntregasCalificadas as int?;
+    bool isProfesor = User.IsInRole("Profesor");
+    bool isAdmin = User.IsInRole("Administrador");
+    bool isEstudiante = User.IsInRole("Estudiante");
+}
+
+<h2>@Model.Title</h2>
+
+@if (Model.IsSoftDeleted)
+{
+    <div class="alert alert-warning">
+        Esta tarea está marcada como eliminada (soft-deleted).
+    </div>
+}
+
+<div class="mb-3">
+    <p><strong>Curso:</strong> @(Model.CourseOffering?.Course?.Title ?? "—")</p>
+    <p><strong>Descripción:</strong> @Html.Raw(Model.Description ?? "—")</p>
+    <p><strong>Fecha límite:</strong> @(Model.DueDate.ToLocalTime().ToString("g"))</p>
+    <p><strong>Puntos máximos:</strong> @Model.MaxScore</p>
+    @if (Model.CreatedByUser != null)
+    {
+        <p><strong>Creada por:</strong> @Model.CreatedByUser.UserName</p>
+    }
+</div>
+
+<hr />
+
+@if (isEstudiante)
+{
+    <h4>Mi entrega</h4>
+
+    @if (submission == null)
+    {
+        <p class="text-warning">No has entregado esta tarea aún.</p>
+        <a asp-controller="Submissions" asp-action="Create" asp-route-assignmentId="@Model.Id"
+           class="btn btn-success">Entregar tarea</a>
+    }
+    else
+    {
+        <p><strong>Fecha de entrega:</strong> @submission.SubmittedAt.ToLocalTime().ToString("g")</p>
+
+        @if (submission.CurrentGrade.HasValue)
+        {
+            <p><strong>Calificación:</strong> @submission.CurrentGrade / @Model.MaxScore</p>
+        }
+        else
+        {
+            <p><strong>Estado:</strong> Entregada (pendiente de calificar)</p>
+        }
+    }
+
+    <hr />
+}
+
+@if (isProfesor || isAdmin)
+{
+    <h4>Acciones</h4>
+
+    <div class="mb-3">
+        @* Profesor puede ver entregas; ambos pueden editar. *@
+        @if (isProfesor)
+        {
+            <a asp-controller="Submissions" asp-action="Index" asp-route-taskId="@Model.Id"
+               class="btn btn-info me-2">
+                Ver entregas
+                <span class="badge bg-light text-dark ms-2">@((totalEntregas ?? 0))</span>
+            </a>
+        }
+
+        <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-primary me-2">Editar</a>
+
+        @* Eliminar: solo Admin, ejecuta POST a la acción "Delete" (ActionName("Delete")) *@
+        @if (isAdmin)
+        {
+            <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-danger"
+                        onclick="return confirm('¿Seguro que desea eliminar (marcar como eliminada) esta tarea?');">
+                    Eliminar
+                </button>
+            </form>
+        }
+    </div>
+
+    <div class="mb-3">
+        <h5>Estadísticas para Profesor</h5>
+        <p><strong>Total de entregas:</strong> @(totalEntregas ?? 0)</p>
+        <p><strong>Entregas calificadas:</strong> @(entregasCalificadas ?? 0)</p>
+    </div>
+}
+

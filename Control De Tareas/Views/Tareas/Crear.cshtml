@@ -1,0 +1,84 @@
+﻿@model Control_De_Tareas.Models.TareaCreateVm
+@{
+    ViewData["Title"] = "Crear Tarea";
+    var userRole = ViewBag.UserRole as string;
+    var courseOfferings = ViewBag.CourseOfferings as SelectList;
+}
+
+<h2>Crear Tarea</h2>
+
+@if (courseOfferings == null || !courseOfferings.Any())
+{
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i>
+        <strong>No tienes cursos asignados</strong>
+        @if (userRole == "Profesor")
+        {
+            <p>Para crear tareas, primero debes ser asignado como profesor de un curso.</p>
+            <p>Contacta al administrador del sistema para que te asigne a un curso.</p>
+        }
+        else
+        {
+            <p>No hay cursos disponibles para crear tareas.</p>
+        }
+    </div>
+
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+}
+else
+{
+    <form asp-action="Crear" method="post" novalidate>
+        @Html.AntiForgeryToken()
+
+        <div class="mb-3">
+            <label asp-for="CourseOfferingId" class="form-label">Curso</label>
+            <select asp-for="CourseOfferingId" class="form-control" asp-items="courseOfferings">
+                <option value="">Seleccionar curso</option>
+            </select>
+            <span asp-validation-for="CourseOfferingId" class="text-danger"></span>
+            @if (userRole == "Profesor")
+            {
+                <small class="text-muted">Solo puedes seleccionar cursos que impartes.</small>
+            }
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Title" class="form-label">Título</label>
+            <input asp-for="Title" class="form-control" />
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label">Descripción</label>
+            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="DueDate" class="form-label">Fecha Límite</label>
+            <input asp-for="DueDate" type="datetime-local" class="form-control" />
+            <span asp-validation-for="DueDate" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="MaxScore" class="form-label">Puntuación Máxima</label>
+            <input asp-for="MaxScore" class="form-control" />
+            <span asp-validation-for="MaxScore" class="text-danger"></span>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle me-1"></i>Crear
+            </button>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-x-circle me-1"></i>Cancelar
+            </a>
+        </div>
+    </form>
+}
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

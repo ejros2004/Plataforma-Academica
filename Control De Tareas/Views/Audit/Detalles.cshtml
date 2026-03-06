@@ -1,0 +1,176 @@
+﻿@model AuditLogVm
+
+@{
+    ViewData["Title"] = "Detalles de Actividad";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-clipboard-list mr-2"></i>Detalles de Actividad
+        </h1>
+        <div>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-left mr-1"></i>Volver al registro
+            </a>
+        </div>
+    </div>
+
+    <!-- Card de información -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-gradient-primary text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-info-circle mr-1"></i>Información de la Actividad
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="font-weight-bold text-primary mb-3">
+                                <i class="fas fa-user mr-2"></i>Información del Usuario
+                            </h6>
+                            <dl class="row">
+                                <dt class="col-sm-4">Usuario:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="font-weight-bold">@Model.UserName</span>
+                                </dd>
+
+                                <dt class="col-sm-4">Rol:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge @Model.RoleBadgeClass">@Model.UserRole</span>
+                                </dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="font-weight-bold text-primary mb-3">
+                                <i class="fas fa-cogs mr-2"></i>Información de la Actividad
+                            </h6>
+                            <dl class="row">
+                                <dt class="col-sm-4">Estado:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge @Model.EstadoBadgeClass">
+                                        <i class="fas @(Model.EstadoDisplay == "Exitoso" ? "fa-check" : "fa-times") mr-1"></i>
+                                        @Model.EstadoDisplay
+                                    </span>
+                                </dd>
+
+                                <dt class="col-sm-4">Fecha/Hora:</dt>
+                                <dd class="col-sm-8">
+                                    <i class="far fa-clock mr-1 text-muted"></i>
+                                    @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="font-weight-bold text-primary mb-3">
+                                <i class="fas fa-tasks mr-2"></i>Detalles de la Operación
+                            </h6>
+                            <dl class="row">
+                                <dt class="col-sm-3">Acción:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="font-weight-bold">@Model.ActionDisplay</span>
+                                </dd>
+
+                                <dt class="col-sm-3">Módulo:</dt>
+                                <dd class="col-sm-9">@Model.EntityDisplay</dd>
+
+                                <dt class="col-sm-3">ID Registro:</dt>
+                                <dd class="col-sm-9">
+                                    <code>@Model.Id</code>
+                                </dd>
+
+                                @if (Model.EntityId.HasValue)
+                                {
+                                    <dt class="col-sm-3">ID Entidad:</dt>
+                                    <dd class="col-sm-9">
+                                        <code>@Model.EntityId.Value.ToString("N")</code>
+                                    </dd>
+                                }
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-cogs mr-1"></i>Acciones
+                    </h6>
+                </div>
+                <div class="card-body">
+                    @if (!Model.IsSoftDeleted)
+                    {
+                        <form asp-action="Eliminar" asp-route-id="@Model.Id"
+                              method="post" onsubmit="return confirm('¿Eliminar permanentemente este registro?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-danger btn-block mb-3">
+                                <i class="fas fa-trash mr-1"></i>Eliminar Registro
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning" role="alert">
+                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                            Este registro ha sido eliminado.
+                        </div>
+                    }
+
+                    <a href="@Url.Action("Index")" class="btn btn-secondary btn-block">
+                        <i class="fas fa-list mr-1"></i>Ver todos los registros
+                    </a>
+                </div>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle mr-1"></i>Información del Sistema
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="small text-muted">
+                        <p><i class="fas fa-database mr-1"></i> ID del registro: @Model.Id</p>
+                        <p><i class="far fa-calendar mr-1"></i> Fecha de creación: @Model.CreatedAt.ToString("dd/MM/yyyy")</p>
+                        <p><i class="far fa-clock mr-1"></i> Hora: @Model.CreatedAt.ToString("HH:mm:ss")</p>
+                        <p><i class="fas fa-hashtag mr-1"></i> Registros similares hoy: @(Model.EstadoDisplay == "Exitoso" ? "Exitosos" : "Fallidos")</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card de detalles -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-align-left mr-1"></i>Detalles Completos
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="bg-light p-4 rounded">
+                @if (!string.IsNullOrEmpty(Model.Details))
+                {
+                    <p class="mb-0" style="font-size: 0.95rem; line-height: 1.6;">@Model.Details</p>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-info-circle mr-1"></i>No hay detalles adicionales para este registro.
+                    </p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

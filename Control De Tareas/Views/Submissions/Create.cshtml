@@ -1,0 +1,265 @@
+﻿@model Control_De_Tareas.Models.SubmissionCreateVm
+
+@{
+    ViewData["Title"] = "Nueva Entrega";
+    var tasks = ViewBag.Tasks as List<Control_De_Tareas.Controllers.TaskSelectVm>;
+}
+
+<div class="container-fluid py-4">
+
+    <!-- ENCABEZADO -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-semibold mb-1">
+                <i class="bi bi-cloud-upload text-primary"></i>
+                Nueva Entrega
+            </h2>
+            <nav>
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index">Mis Entregas</a>
+                    </li>
+                    <li class="breadcrumb-item active">Nueva Entrega</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- ERRORES -->
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger shadow-lg-soft">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <strong>Errores encontrados:</strong>
+            <ul class="mb-0 mt-2">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <form asp-action="Create" method="post" enctype="multipart/form-data" id="submissionForm">
+
+        <!-- BARRA DE PROGRESO -->
+        <div class="progress mb-3 shadow-sm" style="height:6px;">
+            <div id="formProgress" class="progress-bar bg-primary" style="width:0%"></div>
+        </div>
+
+        <div class="row g-4">
+
+            <!-- FORMULARIO -->
+            <div class="col-lg-8">
+                <div class="card shadow-lg-soft border-0">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h5 class="mb-0">
+                            <i class="bi bi-file-earmark-text"></i>
+                            Información de la Entrega
+                        </h5>
+                    </div>
+
+                    <div class="card-body p-4">
+
+                        <!-- TAREA -->
+                        <div class="mb-4">
+                            <label asp-for="TaskId" class="form-label fw-semibold">
+                                <i class="bi bi-clipboard-check text-primary"></i>
+                                Selecciona la Tarea *
+                            </label>
+
+                            <select asp-for="TaskId" class="form-select" id="taskSelect">
+                                <option value="">-- Seleccione una tarea --</option>
+                                @if (tasks != null && tasks.Any())
+                                {
+                                    foreach (var task in tasks)
+                                    {
+                                        var isOverdue = task.DueDate < DateTime.Now;
+                                        <option value="@task.Id"
+                                                data-title="@task.Title"
+                                                data-duedate="@task.DueDate.ToString("dd/MM/yyyy HH:mm")"
+                                                data-course="@task.CourseName">
+                                            @task.Title - @task.CourseName
+                                            @(isOverdue ? "(⚠️ Vencida)" : "(Vence: " + task.DueDate.ToString("dd/MM/yyyy") + ")")
+                                        </option>
+                                    }
+                                }
+                            </select>
+
+                            <span asp-validation-for="TaskId" class="text-danger"></span>
+
+                            <div id="taskInfo" class="alert alert-info mt-3 d-none shadow-sm">
+                                <h6 class="alert-heading">
+                                    <i class="bi bi-info-circle"></i> Información de la Tarea
+                                </h6>
+                                <p class="mb-1"><strong>Título:</strong> <span id="taskTitle"></span></p>
+                                <p class="mb-1"><strong>Curso:</strong> <span id="taskCourse"></span></p>
+                                <p class="mb-0"><strong>Fecha límite:</strong> <span id="taskDueDate"></span></p>
+                            </div>
+                        </div>
+
+                        <!-- ARCHIVOS -->
+                        <div class="mb-4">
+                            <label asp-for="Files" class="form-label fw-semibold">
+                                <i class="bi bi-paperclip text-primary"></i>
+                                Archivos *
+                            </label>
+
+                            <input asp-for="Files"
+                                   type="file"
+                                   class="form-control"
+                                   multiple
+                                   accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                                   id="fileInput">
+
+                            <span asp-validation-for="Files" class="text-danger"></span>
+
+                            <div id="fileList" class="mt-3"></div>
+                        </div>
+
+                        <!-- COMENTARIOS -->
+                        <div class="mb-4">
+                            <label asp-for="Comments" class="form-label fw-semibold">
+                                <i class="bi bi-chat-left-text text-primary"></i>
+                                Comentarios (Opcional)
+                            </label>
+
+                            <textarea asp-for="Comments"
+                                      class="form-control"
+                                      rows="4"
+                                      id="commentsBox"></textarea>
+                        </div>
+
+                        <!-- BOTONES -->
+                        <div class="d-flex justify-content-between pt-3 border-top">
+                            <a asp-action="Index" class="btn btn-outline-secondary shadow-sm">
+                                <i class="bi bi-arrow-left"></i> Cancelar
+                            </a>
+
+                            <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-lg-soft" id="submitBtn">
+                                <i class="bi bi-cloud-upload me-1" id="submitIcon"></i>
+                                <span id="submitText">Enviar Entrega</span>
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMNA DERECHA -->
+            <div class="col-lg-4">
+                <div class="card shadow-lg-soft border-0 mb-3">
+                    <div class="card-header bg-light fw-semibold">
+                        <i class="bi bi-question-circle text-primary"></i> Instrucciones
+                    </div>
+                    <div class="card-body">
+                        <ol class="mb-0 ps-3">
+                            <li>Selecciona la tarea</li>
+                            <li>Sube tus archivos</li>
+                            <li>Agrega comentarios</li>
+                            <li>Presiona enviar</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="card shadow-lg-soft border-0">
+                    <div class="card-header bg-light fw-semibold">
+                        <i class="bi bi-file-earmark-check text-success"></i> Formatos Permitidos
+                    </div>
+                    <div class="card-body">
+                        <div><i class="bi bi-file-pdf text-danger fs-4 me-2"></i>PDF</div>
+                        <div><i class="bi bi-file-word text-primary fs-4 me-2"></i>Word</div>
+                        <div><i class="bi bi-file-image text-success fs-4 me-2"></i>Imágenes</div>
+                        <div><i class="bi bi-file-text text-secondary fs-4 me-2"></i>TXT</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+<!-- ✅ TOAST DE ÉXITO -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="successToast" class="toast align-items-center text-bg-success shadow-lg border-0">
+        <div class="d-flex">
+            <div class="toast-body">
+                ✅ Entrega enviada correctamente.
+            </div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const task = document.getElementById("taskSelect");
+        const files = document.getElementById("fileInput");
+        const progress = document.getElementById("formProgress");
+
+        function updateProgress() {
+            let percent = 0;
+            if (task.value) percent += 50;
+            if (files.files.length > 0) percent += 50;
+            progress.style.width = percent + "%";
+        }
+
+        task.addEventListener("change", function () {
+            const opt = this.options[this.selectedIndex];
+            const box = document.getElementById("taskInfo");
+
+            if (this.value) {
+                document.getElementById('taskTitle').textContent = opt.dataset.title;
+                document.getElementById('taskCourse').textContent = opt.dataset.course;
+                document.getElementById('taskDueDate').textContent = opt.dataset.duedate;
+                box.classList.remove('d-none');
+            } else {
+                box.classList.add('d-none');
+            }
+            updateProgress();
+        });
+
+        files.addEventListener("change", function () {
+            updateProgress();
+            const toast = new bootstrap.Toast(document.getElementById('successToast'));
+        });
+
+        document.getElementById("submissionForm").addEventListener("submit", function () {
+            document.getElementById("submitBtn").classList.add("submit-loading");
+            document.getElementById("submitText").textContent = "Enviando...";
+            document.getElementById("submitIcon").className = "bi bi-arrow-repeat";
+
+            setTimeout(() => {
+                const toast = new bootstrap.Toast(document.getElementById('successToast'));
+                toast.show();
+            }, 800);
+        });
+    </script>
+}
+
+<style>
+    .shadow-lg-soft {
+        box-shadow: 0 18px 38px rgba(0,0,0,.10);
+    }
+
+    .submit-loading {
+        pointer-events: none;
+        opacity: .85;
+    }
+
+        .submit-loading i {
+            animation: spin .7s linear infinite;
+        }
+
+    @@keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>

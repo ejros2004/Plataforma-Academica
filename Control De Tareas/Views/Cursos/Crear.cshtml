@@ -1,0 +1,183 @@
+@{
+    ViewData["Title"] = "Crear Nuevo Curso";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h3 text-primary">
+                    <i class="fas fa-plus-circle me-2"></i>Crear Nuevo Curso
+                </h2>
+                <a href="@Url.Action("Index", "Cursos")" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </a>
+            </div>
+
+            <!-- Mensajes -->
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <!-- Formulario -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-book me-2"></i>Información del Curso
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="Crear">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label for="Codigo" class="form-label">
+                                <i class="fas fa-hashtag me-2"></i>Código del Curso *
+                            </label>
+                            <input type="text" class="form-control" id="Codigo" name="Codigo"
+                                   placeholder="Ej: MAT-101, PROG-202" required
+                                   maxlength="10">
+                            <small class="text-muted">Máximo 10 caracteres. Ejemplo: MAT101, PROG202</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="Nombre" class="form-label">
+                                <i class="fas fa-book me-2"></i>Nombre del Curso *
+                            </label>
+                            <input type="text" class="form-control" id="Nombre" name="Nombre"
+                                   placeholder="Ej: Matemáticas Básicas, Programación I" required
+                                   maxlength="200">
+                            <small class="text-muted">Nombre completo del curso</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="Descripcion" class="form-label">
+                                <i class="fas fa-align-left me-2"></i>Descripción
+                            </label>
+                            <textarea class="form-control" id="Descripcion" name="Descripcion"
+                                      rows="4" placeholder="Descripción detallada del curso..."
+                                      maxlength="500"></textarea>
+                            <small class="text-muted">Opcional. Máximo 500 caracteres.</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="@Url.Action("Index", "Cursos")" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check me-2"></i>Crear Curso
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Información Importante
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small mb-2">
+                        <strong><i class="fas fa-check-circle text-success me-2"></i>¿Qué estás creando?</strong>
+                    </p>
+                    <ul class="small text-muted">
+                        <li>Estás creando un <strong>curso base</strong> (por ejemplo: "Matemáticas I")</li>
+                        <li>Luego podrás crear <strong>ofertas específicas</strong> de este curso (con profesor, período y sección)</li>
+                        <li>Un mismo curso base puede tener múltiples ofertas en diferentes períodos</li>
+                    </ul>
+
+                    <p class="small mb-2 mt-3">
+                        <strong><i class="fas fa-lightbulb text-warning me-2"></i>Recomendaciones:</strong>
+                    </p>
+                    <ul class="small text-muted">
+                        <li>Usa códigos únicos y descriptivos (ej: MAT-101 para Matemáticas I)</li>
+                        <li>Los cursos creados estarán disponibles para crear ofertas inmediatamente</li>
+                        <li>Puedes editar o desactivar el curso después de crearlo</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Validación del formulario
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const codigo = document.getElementById('Codigo').value.trim();
+            const nombre = document.getElementById('Nombre').value.trim();
+
+            if (!codigo) {
+                e.preventDefault();
+                alert('El código del curso es requerido');
+                document.getElementById('Codigo').focus();
+                return;
+            }
+
+            if (!nombre) {
+                e.preventDefault();
+                alert('El nombre del curso es requerido');
+                document.getElementById('Nombre').focus();
+                return;
+            }
+
+            if (codigo.length > 10) {
+                e.preventDefault();
+                alert('El código no puede exceder 10 caracteres');
+                document.getElementById('Codigo').focus();
+                return;
+            }
+
+            if (nombre.length > 200) {
+                e.preventDefault();
+                alert('El nombre no puede exceder 200 caracteres');
+                document.getElementById('Nombre').focus();
+                return;
+            }
+
+            const descripcion = document.getElementById('Descripcion').value;
+            if (descripcion.length > 500) {
+                e.preventDefault();
+                alert('La descripción no puede exceder 500 caracteres');
+                document.getElementById('Descripcion').focus();
+                return;
+            }
+        });
+
+        // Contador de caracteres para descripción
+        const descripcionTextarea = document.getElementById('Descripcion');
+        if (descripcionTextarea) {
+            const charCount = document.createElement('small');
+            charCount.className = 'form-text text-muted float-end';
+            charCount.id = 'charCount';
+            charCount.textContent = '0/500 caracteres';
+
+            descripcionTextarea.parentNode.appendChild(charCount);
+
+            descripcionTextarea.addEventListener('input', function() {
+                const length = this.value.length;
+                charCount.textContent = `${length}/500 caracteres`;
+
+                if (length > 450) {
+                    charCount.className = 'form-text text-warning float-end';
+                } else {
+                    charCount.className = 'form-text text-muted float-end';
+                }
+
+                if (length > 500) {
+                    charCount.className = 'form-text text-danger float-end';
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,131 @@
+@model Control_De_Tareas.Models.CourseOfferingVm
+@{
+    ViewData["Title"] = "Eliminar Oferta de Curso";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <!-- Header -->
+            <div class="mb-4">
+                <h1 class="h3 text-danger">
+                    <i class="bi bi-exclamation-triangle"></i> Eliminar Oferta de Curso
+                </h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="@Url.Action("ListadoOfertas", "CourseOfferings")">Ofertas</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="@Url.Action("Details", new { id = Model.Id })">@Model.CourseName</a>
+                        </li>
+                        <li class="breadcrumb-item active">Eliminar</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <!-- Advertencia -->
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-exclamation-octagon"></i> Advertencia
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-trash text-danger display-1"></i>
+                        <h3 class="text-danger mt-3">¿Está seguro de eliminar esta oferta?</h3>
+                    </div>
+
+                    <!-- Información del curso a eliminar -->
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-info-circle"></i> Se eliminará la siguiente oferta:
+                        </h6>
+                        <hr>
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4">Curso:</dt>
+                            <dd class="col-sm-8">@Model.CourseName</dd>
+
+                            <dt class="col-sm-4">Sección:</dt>
+                            <dd class="col-sm-8">@Model.Section</dd>
+
+                            <dt class="col-sm-4">Profesor:</dt>
+                            <dd class="col-sm-8">@Model.ProfessorName</dd>
+
+                            <dt class="col-sm-4">Período:</dt>
+                            <dd class="col-sm-8">@Model.PeriodName</dd>
+
+                            <dt class="col-sm-4">Estudiantes Inscritos:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-info">@Model.EnrolledStudentsCount</span>
+                            </dd>
+                        </dl>
+                    </div>
+
+                    <!-- Restricciones -->
+                    @if (Model.EnrolledStudentsCount > 0)
+                    {
+                        <div class="alert alert-danger">
+                            <h6 class="alert-heading">
+                                <i class="bi bi-x-circle"></i> No se puede eliminar
+                            </h6>
+                            <p class="mb-0">
+                                Esta oferta tiene @Model.EnrolledStudentsCount estudiante(s) inscrito(s).
+                                Primero debe desinscribir a todos los estudiantes antes de eliminar la oferta.
+                            </p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading">
+                                <i class="bi bi-check-circle"></i> Se puede eliminar
+                            </h6>
+                            <p class="mb-0">
+                                Esta oferta no tiene estudiantes inscritos, por lo que se puede eliminar sin problemas.
+                            </p>
+                        </div>
+                    }
+
+                    <!-- Consecuencias -->
+                    <div class="alert alert-secondary">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-lightning"></i> Consecuencias de la eliminación
+                        </h6>
+                        <ul class="mb-0">
+                            <li>La oferta desaparecerá de todas las listas</li>
+                            <li>No podrá ser recuperada (eliminación lógica)</li>
+                            <li>Los documentos asociados se mantendrán en el sistema</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-top-0">
+                    <div class="d-flex justify-content-between">
+                        <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancelar
+                        </a>
+                        
+                        @if (Model.EnrolledStudentsCount == 0)
+                        {
+                            <form asp-action="Delete" method="post">
+                                <input type="hidden" name="id" value="@Model.Id" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger" 
+                                        onclick="return confirm('¿Está completamente seguro? Esta acción no se puede deshacer.')">
+                                    <i class="bi bi-trash"></i> Sí, Eliminar Oferta
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Index", new { id = Model.Id })" class="btn btn-warning">
+                                <i class="bi bi-people"></i> Gestionar Inscripciones
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

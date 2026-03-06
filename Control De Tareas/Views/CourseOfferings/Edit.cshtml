@@ -1,0 +1,154 @@
+@model Control_De_Tareas.Models.CourseOfferingVm
+@{
+    ViewData["Title"] = "Editar Oferta de Curso";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 text-primary">
+                    <i class="bi bi-pencil"></i> Editar Oferta de Curso
+                </h1>
+                <div>
+                    <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-outline-info me-2">
+                        <i class="bi bi-eye"></i> Ver Detalles
+                    </a>
+                    <a href="@Url.Action("ListadoOfertas", "CourseOfferings")" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </a>
+                </div>
+            </div>
+
+            <!-- Mensajes -->
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <!-- Formulario -->
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-journal-text"></i> Editar Información
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="CreatedAt" />
+
+                        <div class="row">
+                            <!-- Curso -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CourseId" class="form-label">
+                                    <i class="bi bi-book"></i> Curso *
+                                </label>
+                                <select asp-for="CourseId" class="form-select" required>
+                                    <option value="">-- Seleccionar Curso --</option>
+                                    @foreach (var curso in ViewBag.Courses)
+                                    {
+                                        <option value="@curso.Value" selected="@(curso.Value == Model.CourseId.ToString())">
+                                            @curso.Text
+                                        </option>
+                                    }
+                                </select>
+                                <span asp-validation-for="CourseId" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Profesor -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ProfessorId" class="form-label">
+                                    <i class="bi bi-person-badge"></i> Profesor *
+                                </label>
+                                <select asp-for="ProfessorId" class="form-select" required>
+                                    <option value="">-- Seleccionar Profesor --</option>
+                                    @foreach (var profesor in ViewBag.Professors)
+                                    {
+                                        <option value="@profesor.Value" selected="@(profesor.Value == Model.ProfessorId.ToString())">
+                                            @profesor.Text
+                                        </option>
+                                    }
+                                </select>
+                                <span asp-validation-for="ProfessorId" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Período -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PeriodId" class="form-label">
+                                    <i class="bi bi-calendar"></i> Período *
+                                </label>
+                                <select asp-for="PeriodId" class="form-select" required>
+                                    <option value="">-- Seleccionar Período --</option>
+                                    @foreach (var periodo in ViewBag.Periods)
+                                    {
+                                        <option value="@periodo.Value" selected="@(periodo.Value == Model.PeriodId.ToString())">
+                                            @periodo.Text
+                                        </option>
+                                    }
+                                </select>
+                                <span asp-validation-for="PeriodId" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Sección -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Section" class="form-label">
+                                    <i class="bi bi-hash"></i> Sección *
+                                </label>
+                                <input asp-for="Section" class="form-control"
+                                       placeholder="Ej: A, B, 01, 02" required />
+                                <span asp-validation-for="Section" class="text-danger small"></span>
+                                <small class="text-muted">Identificador único de la sección dentro del período</small>
+                            </div>
+                        </div>
+
+                        <!-- Estado -->
+                        <div class="mb-4">
+                            <div class="form-check form-switch">
+                                <!-- SOLUCIÓN: Solo el tag helper, sin atributo checked adicional -->
+                                <input asp-for="IsActive" class="form-check-input" type="checkbox" role="switch" />
+                                <label asp-for="IsActive" class="form-check-label">
+                                    <i class="bi bi-toggle-on"></i> Oferta Activa
+                                </label>
+                            </div>
+                            <small class="text-muted">
+                                Si está activa, los estudiantes podrán ver y matricularse en el curso
+                            </small>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-flex justify-content-between">
+                            <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                            <div>
+                                <a href="@Url.Action("Delete", new { id = Model.Id })"
+                                   class="btn btn-outline-danger me-2"
+                                   onclick="return confirm('¿Está seguro de eliminar esta oferta?')">
+                                    <i class="bi bi-trash"></i> Eliminar
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle"></i> Guardar Cambios
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

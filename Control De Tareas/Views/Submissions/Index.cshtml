@@ -1,0 +1,342 @@
+﻿@model IEnumerable<Control_De_Tareas.Data.Entitys.Submissions>
+
+@{
+    ViewData["Title"] = "Mis Entregas";
+    var userRole = ViewBag.UserRole as string;
+    var userName = ViewBag.UserName as string;
+    var isProfessor = userRole == "Profesor" || userRole == "Administrador";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- HEADER -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h2 class="fw-semibold mb-1">
+                <i class="bi bi-folder-check text-primary"></i>
+                Mis Entregas
+            </h2>
+            <p class="text-muted mb-0">
+                @(isProfessor ? "Gestiona todas las entregas de los estudiantes" : "Gestiona tus entregas de tareas")
+            </p>
+
+            @if (isProfessor && userRole == "Profesor")
+            {
+                <div class="alert alert-info mt-2 mb-0 p-2 small">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Vista de profesor</strong> - Solo puedes gestionar entregas de los cursos que impartes.
+                </div>
+            }
+        </div>
+
+        @if (!isProfessor)
+        {
+            <div class="col-md-4 text-end">
+                <a asp-action="Create" class="btn btn-primary shadow-soft rounded-pill px-4">
+                    <i class="bi bi-plus-circle me-1"></i>
+                    Nueva Entrega
+                </a>
+            </div>
+        }
+    </div>
+
+    <!-- MENSAJES DE TEMPDATA -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+            <i class="bi bi-check-circle me-2"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- TARJETA PRINCIPAL -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-soft border-0">
+
+                <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-semibold">
+                        <i class="bi bi-list-ul text-primary"></i>
+                        Entregas Registradas
+                        @if (Model != null)
+                        {
+                            <span class="badge bg-primary ms-2">@Model.Count()</span>
+                        }
+                    </h5>
+                </div>
+
+                <div class="card-body p-0">
+
+                    @if (Model != null && Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0 premium-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 4%;">#</th>
+
+                                        @if (isProfessor)
+                                        {
+                                            <th style="width: 18%;">Estudiante</th>
+                                            <th style="width: 20%;">Curso</th>
+                                        }
+
+                                        <th style="width: @(isProfessor ? "20%" : "24%");">Tarea</th>
+                                        <th style="width: 14%;">Fecha Entrega</th>
+                                        <th style="width: 10%;">Archivos</th>
+                                        <th style="width: 10%;">Calificación</th>
+                                        <th style="width: 10%;">Estado</th>
+                                        <th style="width: 10%;" class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @{
+                                        int index = 1;
+                                    }
+
+                                    @foreach (var submission in Model)
+                                    {
+                                        <tr>
+                                            <td class="fw-semibold">@index</td>
+
+                                            @if (isProfessor)
+                                            {
+                                                <td>
+                                                    <i class="bi bi-person-circle me-2 text-primary"></i>
+                                                    <strong>@submission.Student?.UserName</strong>
+                                                </td>
+                                                <td>
+                                                    <i class="bi bi-book me-2 text-secondary"></i>
+                                                    <small>@submission.Task?.CourseOffering?.Course?.Title</small>
+                                                </td>
+                                            }
+
+                                            <td>
+                                                <i class="bi bi-file-text text-primary me-2"></i>
+                                                @submission.Task?.Title
+                                            </td>
+
+                                            <td>
+                                                @submission.SubmittedAt.ToString("dd/MM/yyyy HH:mm")
+                                            </td>
+
+                                            <td>
+                                                @if (submission.SubmissionFiles?.Count > 0)
+                                                {
+                                                    <span class="badge bg-info text-dark px-3">
+                                                        @submission.SubmissionFiles.Count
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">0</span>
+                                                }
+                                            </td>
+
+                                            <td>
+                                                @if (submission.CurrentGrade > 0)
+                                                {
+                                                    <span class="badge bg-success px-3">@submission.CurrentGrade</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+
+                                            <td>
+                                                @if (submission.Status == "Submitted")
+                                                {
+                                                    <span class="badge bg-warning text-dark px-3">
+                                                        <i class="bi bi-clock me-1"></i>@submission.Status
+                                                    </span>
+                                                }
+                                                else if (submission.Status == "Calificada")
+                                                {
+                                                    <span class="badge bg-success px-3">
+                                                        <i class="bi bi-check-circle me-1"></i>@submission.Status
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary px-3">@submission.Status</span>
+                                                }
+                                            </td>
+
+                                            <td class="text-center">
+                                                <!-- Botón Ver -->
+                                                <a asp-action="Details"
+                                                   asp-route-id="@submission.Id"
+                                                   class="btn btn-sm btn-info text-white"
+                                                   title="Ver detalles">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+
+                                                @if (isProfessor)
+                                                {
+                                                    <!-- Botón Eliminar como formulario separado -->
+                                                    <form asp-action="Delete" method="post" class="d-inline ms-1">
+                                                        <input type="hidden" name="id" value="@submission.Id" />
+                                                        @Html.AntiForgeryToken()
+                                                        <button type="submit"
+                                                                class="btn btn-sm btn-danger"
+                                                                onclick="return confirmDelete(event, '@submission.Student?.UserName', '@submission.Task?.Title', '@submission.Task?.CourseOffering?.Course?.Title')"
+                                                                title="Eliminar">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                }
+                                            </td>
+                                        </tr>
+
+                                        index++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- ESTADO VACÍO -->
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox display-1 text-muted"></i>
+                            <h4 class="mt-3 text-muted">No hay entregas registradas</h4>
+
+                            @if (isProfessor)
+                            {
+                                <p class="text-muted">No hay entregas en los cursos que impartes.</p>
+                                <a asp-action="Index" asp-controller="Tareas" class="btn btn-outline-primary mt-3">
+                                    <i class="bi bi-list-task me-1"></i>
+                                    Ver Tareas
+                                </a>
+                            }
+                            else
+                            {
+                                <p class="text-muted">Comienza creando tu primera entrega.</p>
+                                <a asp-action="Create" class="btn btn-primary mt-3 shadow-soft rounded-pill px-4">
+                                    <i class="bi bi-plus-circle me-1"></i>
+                                    Nueva Entrega
+                                </a>
+                            }
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* 🎯 COLORES BASE */
+    .btn-primary {
+        background-color: #3b7dbd;
+        border-color: #3b7dbd;
+    }
+
+        .btn-primary:hover {
+            background-color: #2e6399;
+            border-color: #2e6399;
+            transform: translateY(-1px);
+        }
+
+    .text-primary {
+        color: #3b7dbd !important;
+    }
+
+    h2 {
+        color: #2c3e50;
+    }
+
+    /* SOMBRAS PREMIUM */
+    .shadow-soft {
+        box-shadow: 0 18px 38px rgba(0,0,0,.10);
+    }
+
+    /* TABLA PREMIUM */
+    .premium-table thead th {
+        border-bottom: 2px solid #3b7dbd;
+        font-weight: 600;
+        background-color: #f8fafc;
+    }
+
+    .premium-table tbody tr {
+        transition: all 0.25s ease;
+    }
+
+        .premium-table tbody tr:hover {
+            background-color: rgba(59,125,189,0.05);
+            transform: scale(1.002);
+        }
+
+    /* BADGES */
+    .badge {
+        font-weight: 600;
+        border-radius: 20px;
+    }
+
+    /* BOTONES */
+    .btn-group .btn {
+        transition: all 0.2s ease;
+    }
+
+        .btn-group .btn:hover {
+            transform: translateY(-1px);
+        }
+
+    /* HEADER LINE */
+    .card-header {
+        border-bottom: 2px solid #3b7dbd;
+    }
+
+    /* ALERTAS */
+    .alert {
+        border-radius: 8px;
+        border: none;
+    }
+</style>
+
+<script>
+    function confirmDelete(event, studentName, taskTitle, courseName) {
+        event.preventDefault(); // Prevenir envío inmediato
+
+        var message = "¿Está seguro de eliminar esta entrega?";
+
+        if (studentName && taskTitle) {
+            if (courseName) {
+                message = `¿Está seguro de eliminar la entrega de "${studentName}" para la tarea "${taskTitle}" del curso "${courseName}"?\n\n⚠️ Esta acción eliminará todos los archivos adjuntos y no se podrá deshacer.`;
+            } else {
+                message = `¿Está seguro de eliminar la entrega de "${studentName}" para la tarea "${taskTitle}"?\n\n⚠️ Esta acción eliminará todos los archivos adjuntos y no se podrá deshacer.`;
+            }
+        }
+
+        if (confirm(message)) {
+            // Enviar el formulario
+            event.target.closest('form').submit();
+        }
+
+        return false;
+    }
+
+    // Auto-ocultar alertas después de 5 segundos
+    document.addEventListener('DOMContentLoaded', function() {
+        var alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            setTimeout(function() {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }, 5000);
+        });
+    });
+</script>
